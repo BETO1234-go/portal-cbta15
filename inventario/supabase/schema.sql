@@ -148,7 +148,7 @@ INSERT INTO inv_bienes (no_inventario, nombre_bien, marca, modelo, serie, adq, v
 ('INV-00009', 'Silla ergonomica', 'Generico', 'Modelo Ergo', 'N/A', 'Compra directa', 3200.00, 1, 1, 'Asignado', 'CBTA00009'),
 ('INV-00010', 'Computadora portatil', 'Acer', 'Aspire 5', 'NXHKABC123', 'Donacion', 11000.00, 4, 4, 'En mantenimiento', 'CBTA00010'),
 ('INV-00011', 'Monitor 24 pulgadas', 'LG', '24MP400', '405ABCDE12', 'Compra directa', 4200.00, 7, NULL, 'Pendiente', 'CBTA00011'),
-('INV-00012', 'Impresora multifuncional', 'Epson', 'L3150', 'X8VY123456', 'Compra directa', 5500.00, 10, 10, 'Asignado', 'CBTA00012'),
+('INV-00012', 'Impresora multifuncional', 'Epson', 'L3150', 'X8VY123456', 'Compra directa', 5500.00, 10, 8, 'Asignado', 'CBTA00012'),
 ('INV-00013', 'Switch de red 24 puertos', 'Cisco', 'SF200-24', 'FCW1234567', 'Compra directa', 6800.00, 3, 6, 'Asignado', 'CBTA00013'),
 ('INV-00014', 'Bocinas multimedia', 'Logitech', 'Z313', 'Y00ABCDE12', 'Donacion', 1200.00, 9, 8, 'Danado', 'CBTA00014'),
 ('INV-00015', 'Tablet educativa', 'Samsung', 'Galaxy Tab A8', 'R52T123456', 'Convenio', 5800.00, 2, 2, 'Asignado', 'CBTA00015');
