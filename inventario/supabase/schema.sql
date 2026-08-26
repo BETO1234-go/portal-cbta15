@@ -133,7 +133,8 @@ INSERT INTO inv_personal (nombre, apellido_paterno, apellido_materno, puesto, co
 INSERT INTO inv_marcas (nombre_marca) VALUES
 ('HP'), ('Dell'), ('Lenovo'), ('Samsung'), ('Canon'),
 ('Epson'), ('Brother'), ('LG'), ('Acer'), ('Asus'),
-('Kingston'), ('Logitech'), ('Epson'), ('Cisco'), ('TP-Link');
+('Kingston'), ('Logitech'), ('Cisco'), ('TP-Link'),
+('Generico'), ('BaconQrCode');
 
 INSERT INTO inv_bienes (no_inventario, nombre_bien, marca, modelo, serie, adq, valor, id_area, id_personal, estatus, codigo_barras) VALUES
 ('INV-00001', 'Computadora de escritorio', 'HP', 'ProDesk 400 G7', '5CG1234XYZ', 'Compra directa', 15000.00, 7, 6, 'Asignado', 'CBTA00001'),
