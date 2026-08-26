@@ -266,7 +266,7 @@ var InvDB = {
 
         if (invClient) {
             var query = invClient.from('inv_historial')
-                .select('*, inv_bienes!id_bien(no_inventario, nombre_bien), inv_personal!id_personal_anterior(nombre, apellido_paterno) as personal_anterior, inv_personal!id_personal_nuevo(nombre, apellido_paterno) as personal_nuevo, inv_areas!id_area_anterior(nombre_area) as area_anterior, inv_areas!id_area_nueva(nombre_area) as area_nueva', { count: 'exact' })
+                .select('*, inv_bienes!id_bien(no_inventario, nombre_bien), personal_anterior:inv_personal!id_personal_anterior(nombre, apellido_paterno), personal_nuevo:inv_personal!id_personal_nuevo(nombre, apellido_paterno), area_anterior:inv_areas!id_area_anterior(nombre_area), area_nueva:inv_areas!id_area_nueva(nombre_area)', { count: 'exact' })
                 .order('fecha_movimiento', { ascending: false })
                 .range(from, to);
 

@@ -217,7 +217,8 @@
             var data = [];
 
             if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
-                data = await InvDB.getBienes();
+                var result = await InvDB.getBienes(1, 10000);
+                data = result.data || [];
             }
 
             allBienes = data || [];

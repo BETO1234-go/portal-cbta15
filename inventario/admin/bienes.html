@@ -275,7 +275,8 @@
         async function loadBienes() {
             try {
                 if (typeof requireInvAuth === 'function') await requireInvAuth();
-                allBienes = await InvDB.getBienes();
+                var result = await InvDB.getBienes(1, 10000);
+                allBienes = result.data || [];
                 renderBienes();
             } catch (err) {
                 console.error('Error loading bienes:', err);
@@ -306,8 +307,8 @@
                 else area = 'Sin &aacute;rea';
 
                 var personal = '';
-                if (b.personal) personal = b.personal.nombre_completo;
-                else if (b.inv_personal) personal = b.inv_personal.nombre_completo;
+                if (b.personal) personal = b.personal.nombre_completo || ((b.personal.nombre || '') + ' ' + (b.personal.apellido_paterno || '')).trim();
+                else if (b.inv_personal) personal = ((b.inv_personal.nombre || '') + ' ' + (b.inv_personal.apellido_paterno || '')).trim();
                 else personal = 'Sin asignar';
 
                 return '<tr>' +

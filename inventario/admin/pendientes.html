@@ -197,7 +197,8 @@
 
             var data = [];
             if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
-                data = await InvDB.getBienes({ estatus: 'Pendiente' });
+                var result = await InvDB.getBienes(1, 10000, { estatus: 'Pendiente' });
+                data = result.data || [];
             }
 
             allPendientes = data || [];

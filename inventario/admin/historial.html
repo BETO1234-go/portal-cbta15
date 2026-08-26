@@ -288,8 +288,10 @@
                     }
 
                     var personalAnterior = '-';
-                    if (m.inv_personal && m.inv_personal.nombre) {
-                        personalAnterior = [m.inv_personal.nombre, m.inv_personal.apellido_paterno].filter(Boolean).join(' ');
+                    if (m.personal_anterior && m.personal_anterior.nombre) {
+                        personalAnterior = [m.personal_anterior.nombre, m.personal_anterior.apellido_paterno].filter(Boolean).join(' ');
+                    } else if (m.id_personal_anterior) {
+                        personalAnterior = m.id_personal_anterior;
                     }
 
                     var personalNuevo = '-';

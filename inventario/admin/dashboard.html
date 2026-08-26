@@ -193,7 +193,7 @@
                 var areaCount = {};
                 var statusCount = {};
                 list.forEach(function (b) {
-                    var area = b.area || b.nombre_area || 'Sin area';
+                    var area = (b.inv_areas && b.inv_areas.nombre_area) || b.nombre_area || 'Sin area';
                     areaCount[area] = (areaCount[area] || 0) + 1;
                     var est = b.estatus || 'Sin estatus';
                     statusCount[est] = (statusCount[est] || 0) + 1;
