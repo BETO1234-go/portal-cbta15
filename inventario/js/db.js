@@ -413,5 +413,23 @@ var InvDB = {
             return true;
         }
         return false;
+    },
+
+    async createUsuario(data) {
+        if (invClient) {
+            var result = await invClient.from('inv_usuarios').insert(data).select();
+            if (result.error) throw result.error;
+            return result.data[0];
+        }
+        return null;
+    },
+
+    async updateUsuario(id, data) {
+        if (invClient) {
+            var result = await invClient.from('inv_usuarios').update(data).eq('id', id).select();
+            if (result.error) throw result.error;
+            return result.data[0];
+        }
+        return null;
     }
 };

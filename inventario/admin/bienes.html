@@ -184,6 +184,9 @@
                                     <option value="Disponible">Disponible</option>
                                     <option value="Asignado">Asignado</option>
                                     <option value="Pendiente">Pendiente</option>
+                                    <option value="En revision">En revisi&oacute;n</option>
+                                    <option value="En mantenimiento">En mantenimiento</option>
+                                    <option value="Danado">Da&ntilde;ado</option>
                                     <option value="Baja">Baja</option>
                                 </select>
                             </div>
@@ -241,30 +244,33 @@
 
         function loadSelects() {
             if (typeof InvDB === 'undefined') return;
-            InvDB.getAreas().then(function (areas) {
+            InvDB.getAreas().then(function (result) {
+                var data = result.data || [];
                 var sel = document.getElementById('id_area');
-                areas.forEach(function (a) {
+                data.forEach(function (a) {
                     var o = document.createElement('option');
-                    o.value = a.id_area;
+                    o.value = a.id;
                     o.textContent = a.nombre_area;
                     sel.appendChild(o);
                 });
             });
-            InvDB.getPersonal().then(function (personal) {
+            InvDB.getPersonal().then(function (result) {
+                var data = result.data || [];
                 var sel = document.getElementById('id_personal');
-                personal.forEach(function (p) {
+                data.forEach(function (p) {
                     var o = document.createElement('option');
-                    o.value = p.id_personal;
-                    o.textContent = p.nombre_completo;
+                    o.value = p.id;
+                    o.textContent = [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ');
                     sel.appendChild(o);
                 });
             });
             if (InvDB.getMarcas) {
-                InvDB.getMarcas().then(function (marcas) {
+                InvDB.getMarcas().then(function (result) {
+                    var data = result.data || result || [];
                     var sel = document.getElementById('id_marca');
-                    marcas.forEach(function (m) {
+                    data.forEach(function (m) {
                         var o = document.createElement('option');
-                        o.value = m.id_marca;
+                        o.value = m.id;
                         o.textContent = m.nombre_marca;
                         sel.appendChild(o);
                     });
@@ -322,7 +328,7 @@
                     '<td>' + personal + '</td>' +
                     '<td class="acciones">' +
                         '<button type="button" class="action-btn action-edit admin-only" title="Editar" onclick="editBien(this)" ' +
-                            'data-id="' + b.id_bien + '" ' +
+                            'data-id="' + b.id + '" ' +
                             'data-no_inventario="' + (b.no_inventario || '') + '" ' +
                             'data-nombre_bien="' + (b.nombre_bien || '') + '" ' +
                             'data-id_marca="' + (b.id_marca || '') + '" ' +
@@ -334,7 +340,7 @@
                             'data-estatus="' + (b.estatus || '') + '">' +
                             '<i class="fa-solid fa-pen"></i>' +
                         '</button>' +
-                        '<button type="button" class="action-btn action-delete admin-only" title="Eliminar" onclick="deleteBien(' + b.id_bien + ')">' +
+                        '<button type="button" class="action-btn action-delete admin-only" title="Eliminar" onclick="deleteBien(' + b.id + ')">' +
                             '<i class="fa-solid fa-trash"></i>' +
                         '</button>' +
                     '</td>' +
@@ -433,7 +439,7 @@
 
         function deleteBien(id) {
             showConfirm('Enviar este bien a la papelera?', function () {
-                InvDB.deleteBien(id).then(function () {
+                InvDB.softDeleteBien(id).then(function () {
                     showAlert('Bien eliminado correctamente.');
                     loadBienes();
                 }).catch(function (err) {
@@ -445,17 +451,20 @@
         document.getElementById('formBien').addEventListener('submit', async function (e) {
             e.preventDefault();
             var id = document.getElementById('bienId').value;
+            var marcaVal = document.getElementById('id_marca').value;
+            var areaVal = document.getElementById('id_area').value;
+            var personalVal = document.getElementById('id_personal').value;
             var data = {
                 nombre_bien: document.getElementById('nombre_bien').value.trim(),
-                id_marca: document.getElementById('id_marca').value || null,
+                id_marca: marcaVal ? parseInt(marcaVal) : null,
                 modelo: document.getElementById('modelo').value.trim(),
                 serie: document.getElementById('serie').value.trim(),
                 valor: document.getElementById('valor').value ? parseFloat(document.getElementById('valor').value) : null,
                 estatus: document.getElementById('estatus').value
             };
             if (!id) {
-                data.id_area = document.getElementById('id_area').value || null;
-                data.id_personal = document.getElementById('id_personal').value || null;
+                data.id_area = areaVal ? parseInt(areaVal) : null;
+                data.id_personal = personalVal ? parseInt(personalVal) : null;
             }
 
             try {

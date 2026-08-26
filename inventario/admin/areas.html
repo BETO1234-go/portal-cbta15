@@ -24,6 +24,7 @@
                 <a href="bienes.html"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
                 <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
                 <a href="areas.html" class="activo"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+                <a href="asignaciones.html"><i class="fa-solid fa-link"></i><span>Asignaciones</span></a>
                 <a href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
                 <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
                 <a href="pendientes.html"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
@@ -64,13 +65,12 @@
                         <tr>
                             <th>Nombre del &Aacute;rea</th>
                             <th>Descripci&oacute;n</th>
-                            <th>Encargado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="areasBody">
                         <tr>
-                            <td colspan="4" class="empty-state" style="text-align:center;padding:40px 20px;">
+                            <td colspan="3" class="empty-state" style="text-align:center;padding:40px 20px;">
                                 <i class="fa-solid fa-building" style="font-size:2.5rem;margin-bottom:12px;display:block;color:var(--muted);"></i>
                                 <span style="color:var(--muted);">Cargando &aacute;reas...</span>
                             </td>
@@ -101,11 +101,6 @@
                     <div class="form-group">
                         <label>Descripci&oacute;n</label>
                         <textarea id="descripcion" rows="3" placeholder="Descripci&oacute;n del &aacute;rea..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Encargado</label>
-                        <input type="text" id="encargado" placeholder="Nombre del encargado">
                     </div>
 
                     <div class="form-group">
@@ -193,7 +188,7 @@
             } catch (err) {
                 console.error('Error loading areas:', err);
                 document.getElementById('areasBody').innerHTML =
-                    '<tr><td colspan="4" class="empty-state" style="text-align:center;padding:40px 20px;">' +
+                    '<tr><td colspan="3" class="empty-state" style="text-align:center;padding:40px 20px;">' +
                     '<i class="fa-solid fa-exclamation-triangle" style="font-size:2.5rem;margin-bottom:12px;display:block;color:var(--danger);"></i>' +
                     '<span style="color:var(--muted);">Error al cargar &aacute;reas</span></td></tr>';
             }
@@ -204,18 +199,16 @@
 
             if (allAreas.length === 0) {
                 tbody.innerHTML =
-                    '<tr><td colspan="4" class="empty-state" style="text-align:center;padding:40px 20px;">' +
+                    '<tr><td colspan="3" class="empty-state" style="text-align:center;padding:40px 20px;">' +
                     '<i class="fa-solid fa-inbox" style="font-size:2.5rem;margin-bottom:12px;display:block;color:var(--muted);"></i>' +
                     '<span style="color:var(--muted);">No se encontraron &aacute;reas</span></td></tr>';
             } else {
                 tbody.innerHTML = allAreas.map(function (a) {
                     var estatus = a.estatus || 'Activo';
                     var badgeClass = estatus === 'Activo' ? 'component-badge-success' : 'component-badge-warning';
-                    var encargado = a.encargado || a.responsable || '-';
                     return '<tr>' +
-                        '<td><strong>' + (a.nombre_area || a.nombre || 'N/A') + '</strong></td>' +
+                        '<td><strong>' + (a.nombre_area || 'N/A') + '</strong></td>' +
                         '<td>' + (a.descripcion || '-') + '</td>' +
-                        '<td>' + encargado + '</td>' +
                         '<td class="acciones">' +
                             '<div class="acciones" style="display:flex;gap:4px;justify-content:center;flex-wrap:nowrap;">' +
                                 '<button class="action-btn action-edit" title="Editar" onclick="editArea(\'' + a.id + '\')"><i class="fa-solid fa-pen"></i></button>' +
@@ -273,24 +266,18 @@
             if (area) {
                 title.innerHTML = '<i class="fa-solid fa-pen" style="color:var(--primary);margin-right:8px;"></i> Editar &Aacute;rea';
                 document.getElementById('areaId').value = area.id || '';
-                document.getElementById('nombreArea').value = area.nombre_area || area.nombre || '';
+                document.getElementById('nombreArea').value = area.nombre_area || '';
                 document.getElementById('descripcion').value = area.descripcion || '';
-                document.getElementById('encargado').value = area.encargado || area.responsable || '';
                 document.getElementById('estatus').value = area.estatus || 'Activo';
             } else {
                 title.innerHTML = '<i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:8px;"></i> Nueva &Aacute;rea';
             }
 
-            openModalById('areaModal');
-        }
-
-        function openModalById(id) {
-            var el = document.getElementById(id);
-            if (el) el.classList.add('show');
+            openModal('areaModal');
         }
 
         function editArea(id) {
-            var area = allAreas.find(function (a) { return a.id === id; });
+            var area = allAreas.find(function (a) { return a.id == id; });
             if (area) {
                 openModal(area);
             }
@@ -324,7 +311,6 @@
             var payload = {
                 nombre_area: document.getElementById('nombreArea').value.trim(),
                 descripcion: document.getElementById('descripcion').value.trim(),
-                encargado: document.getElementById('encargado').value.trim(),
                 estatus: document.getElementById('estatus').value
             };
 

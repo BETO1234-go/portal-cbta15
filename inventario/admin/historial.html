@@ -47,7 +47,7 @@
             <i class="fa-solid fa-bars"></i>
         </button>
 
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
         <main class="contenido">
 
@@ -116,7 +116,7 @@
             </div>
             <div class="component-modal-footer">
                 <button class="btn btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
-                <button class="btn btn-agregar" id="confirmModalBtn" onclick="confirmModalAction()">Confirmar</button>
+                <button class="btn btn-agregar" id="confirmModalBtn">Confirmar</button>
             </div>
         </div>
     </div>
@@ -145,69 +145,6 @@
         const perPage = 20;
         let allHistorial = [];
         let searchTimeout = null;
-        let confirmCallback = null;
-
-        function toggleTheme() {
-            const root = document.documentElement;
-            const label = document.querySelector('[data-theme-label]');
-            if (root.getAttribute('data-theme') === 'dark') {
-                root.setAttribute('data-theme', 'light');
-                if (label) label.textContent = 'Cambiar tema';
-                localStorage.setItem('inv_theme', 'light');
-            } else {
-                root.setAttribute('data-theme', 'dark');
-                if (label) label.textContent = 'Cambiar tema';
-                localStorage.setItem('inv_theme', 'dark');
-            }
-        }
-
-        (function () {
-            const saved = localStorage.getItem('inv_theme');
-            if (saved) {
-                document.documentElement.setAttribute('data-theme', saved);
-            }
-        })();
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const body = document.body;
-            if (sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-                body.classList.remove('sidebar-open');
-            } else {
-                sidebar.classList.add('open');
-                overlay.classList.add('show');
-                body.classList.add('sidebar-open');
-            }
-        }
-
-        function showConfirmModal(message, callback) {
-            document.getElementById('confirmModalMessage').innerHTML = message;
-            confirmCallback = callback;
-            document.getElementById('confirmModal').classList.add('show');
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.remove('show');
-            confirmCallback = null;
-        }
-
-        function confirmModalAction() {
-            if (typeof confirmCallback === 'function') confirmCallback();
-            closeConfirmModal();
-        }
-
-        function showAlertModal(title, message) {
-            document.getElementById('alertModalTitle').innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + title;
-            document.getElementById('alertModalMessage').innerHTML = message;
-            document.getElementById('alertModal').classList.add('show');
-        }
-
-        function closeAlertModal() {
-            document.getElementById('alertModal').classList.remove('show');
-        }
 
         function getTipoBadge(tipo) {
             const map = {
@@ -234,7 +171,7 @@
 
                 const user = typeof getInvUser === 'function' ? getInvUser() : null;
                 const roleEl = document.getElementById('userRole');
-                if (user && roleEl) roleEl.textContent = user.role || 'Administrador';
+                if (user && roleEl) roleEl.textContent = user.rol || 'Administrador';
 
                 const filters = {};
                 var tipo = document.getElementById('filterTipo').value;
@@ -253,9 +190,10 @@
                 var search = document.getElementById('searchInput').value.trim().toLowerCase();
                 if (search) {
                     data = data.filter(function (m) {
+                        var bien = m.inv_bienes || {};
                         return (m.observaciones || '').toLowerCase().includes(search) ||
-                            (m.no_inventario || '').toLowerCase().includes(search) ||
-                            (m.nombre_bien || '').toLowerCase().includes(search);
+                            (bien.no_inventario || '').toLowerCase().includes(search) ||
+                            (bien.nombre_bien || '').toLowerCase().includes(search);
                     });
                 }
 

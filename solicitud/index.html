@@ -76,17 +76,38 @@
         </section>
     </main>
 
+    <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
     <script>
-        document.getElementById('solicitudForm').addEventListener('submit', function (e) {
+        document.getElementById('solicitudForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             var nombre = document.getElementById('nombre_completo').value.trim();
             if (!nombre) return;
-            this.style.display = 'none';
-            var msg = document.getElementById('successMessage');
-            msg.style.display = 'flex';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            var btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+            try {
+                var sol = {
+                    nombre_completo: nombre,
+                    correo: document.getElementById('correo').value.trim() || null,
+                    telefono: document.getElementById('telefono').value.trim() || null,
+                    direccion: document.getElementById('direccion').value.trim() || null,
+                    ciclo_escolar: document.getElementById('ciclo_escolar').value.trim() || null,
+                    turno_preferente: document.getElementById('turno_preferente').value,
+                    estatus: 'pendiente'
+                };
+                await DB.createSolicitud(sol);
+                this.style.display = 'none';
+                var msg = document.getElementById('successMessage');
+                msg.style.display = 'flex';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (err) {
+                console.error('Error creating solicitud:', err);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar solicitud';
+                alert('Error al enviar la solicitud. Intente de nuevo.');
+            }
         });
     </script>
-    <script src="../js/supabase.js"></script>
 </body>
 </html>

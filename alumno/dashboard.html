@@ -148,5 +148,61 @@
     </script>
     <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
+    <script>
+        (async function () {
+            var userStr = localStorage.getItem('supabase_user');
+            if (!userStr) { window.location.href = '../login/alumno.html'; return; }
+            var user;
+            try { user = JSON.parse(userStr); } catch(e) { window.location.href = '../login/alumno.html'; return; }
+
+            document.getElementById('studentName').textContent = user.nombre || 'Alumno';
+            document.getElementById('studentInfo').textContent = 'Matricula: ' + (user.matricula || '---') + ' | Grupo: ' + (user.grupo || '---');
+            document.querySelector('.topbar-user').textContent = user.nombre || 'Alumno';
+
+            try {
+                var alumnoId = user.id;
+                if (!alumnoId) return;
+
+                if (DB.getAlumnoMaterias) {
+                    var materias = await DB.getAlumnoMaterias(alumnoId);
+                    if (materias && materias.length > 0) {
+                        var tbody = document.querySelectorAll('.table')[1].querySelector('tbody');
+                        tbody.innerHTML = materias.map(function(m) {
+                            return '<tr><td>' + (m.clave || '-') + '</td><td>' + (m.materia || m.nombre || '-') + '</td><td>' + (m.docente || m.maestro || '-') + '</td></tr>';
+                        }).join('');
+                    }
+                }
+
+                if (DB.getAlumnoCalificaciones) {
+                    var califs = await DB.getAlumnoCalificaciones(alumnoId);
+                    if (califs && califs.length > 0) {
+                        var tbody = document.querySelectorAll('.table')[2].querySelector('tbody');
+                        tbody.innerHTML = califs.map(function(c) {
+                            return '<tr><td>' + (c.materia || '-') + '</td><td>' + (c.parcial1 || '-') + '</td><td>' + (c.parcial2 || '-') + '</td><td>' + (c.parcial3 || '-') + '</td><td><strong>' + (c.promedio || '-') + '</strong></td></tr>';
+                        }).join('');
+                        var total = califs.reduce(function(s, c) { return s + (parseFloat(c.promedio) || 0); }, 0);
+                        document.getElementById('promedioGeneral').textContent = (total / califs.length).toFixed(1);
+                        document.getElementById('materiasReprobadas').textContent = califs.filter(function(c) { return (parseFloat(c.promedio) || 0) < 6; }).length;
+                    }
+                }
+
+                if (DB.getAlumnoAsistencias) {
+                    var asist = await DB.getAlumnoAsistencias(alumnoId);
+                    if (asist && asist.length > 0) {
+                        var tbody = document.querySelectorAll('.table')[3].querySelector('tbody');
+                        var totalSesiones = asist.reduce(function(s, a) { return s + (a.sesiones || 0); }, 0);
+                        var totalAsist = asist.reduce(function(s, a) { return s + (a.asistencias || 0); }, 0);
+                        document.getElementById('asistenciaTotal').textContent = totalSesiones > 0 ? Math.round((totalAsist / totalSesiones) * 100) + '%' : '--';
+                        tbody.innerHTML = asist.map(function(a) {
+                            var pct = a.sesiones > 0 ? Math.round((a.asistencias / a.sesiones) * 100) + '%' : '--';
+                            return '<tr><td>' + (a.materia || '-') + '</td><td>' + (a.parcial || '-') + '</td><td>' + (a.sesiones || '-') + '</td><td>' + (a.asistencias || '-') + '</td><td>' + pct + '</td></tr>';
+                        }).join('');
+                    }
+                }
+            } catch(err) {
+                console.error('Error loading alumno data:', err);
+            }
+        })();
+    </script>
 </body>
 </html>

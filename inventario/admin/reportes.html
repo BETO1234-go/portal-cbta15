@@ -167,20 +167,6 @@
     var doughnutChart = null;
     var barMarcaChart = null;
 
-    function closeConfirmModal() {
-        document.getElementById('confirmModal').style.display = 'none';
-    }
-
-    function closeAlertModal() {
-        document.getElementById('alertModal').style.display = 'none';
-    }
-
-    function showAlertModal(title, message) {
-        document.getElementById('alertModalTitle').textContent = title;
-        document.getElementById('alertModalMessage').textContent = message;
-        document.getElementById('alertModal').style.display = 'flex';
-    }
-
     async function loadReportes() {
         try {
             if (typeof requireInvAuth === 'function') {
@@ -315,7 +301,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right', labels: { color: textColor, padding: 12, font: { size: 13 }, font: { family: 'Poppins' } } }
+                        legend: { position: 'right', labels: { color: textColor, padding: 12, font: { size: 13, family: 'Poppins' } } }
                     }
                 }
             });
@@ -347,7 +333,7 @@
 
         } catch (err) {
             console.error('Error loading reportes:', err);
-            showAlertModal('Error', 'Error al cargar reportes: ' + (err.message || 'Error desconocido'));
+            showAlert('Error al cargar reportes: ' + (err.message || 'Error desconocido'));
         }
     }
 

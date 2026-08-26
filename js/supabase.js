@@ -81,7 +81,7 @@ async function supabaseLoginAlumno(matricula) {
 
     var result = await sbClient
         .from('alumnos')
-        .select('id, numero_control, nombre_completo, grupo')
+        .select('id, numero_control, nombre_completo, grupo_id')
         .eq('numero_control', matricula)
         .eq('activo', true)
         .single();
@@ -95,7 +95,7 @@ async function supabaseLoginAlumno(matricula) {
         id: data.id,
         matricula: data.numero_control,
         nombre: data.nombre_completo,
-        grupo: data.grupo,
+        grupo: data.grupo_id,
         rol: 'alumno'
     };
 

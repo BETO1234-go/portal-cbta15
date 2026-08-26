@@ -196,7 +196,10 @@
             if (typeof requireInvAuth === 'function') await requireInvAuth();
 
             var data = [];
-            if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
+            if (typeof InvDB !== 'undefined' && InvDB.getPendientes) {
+                var result = await InvDB.getPendientes(1, 10000);
+                data = result.data || [];
+            } else if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
                 var result = await InvDB.getBienes(1, 10000, { estatus: 'Pendiente' });
                 data = result.data || [];
             }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -212,8 +212,8 @@
         } else {
             tbody.innerHTML = pageData.map(function (u) {
                 var rolBadge = u.rol === 'admin' ? 'tag alta' : 'tag modificacion';
-                var estadoBadge = (u.estado || 'activo') === 'activo' ? 'tag asignacion' : 'tag baja';
-                var estadoLabel = (u.estado || 'activo') === 'activo' ? 'Activo' : 'Inactivo';
+                var estadoBadge = u.activo !== false ? 'tag asignacion' : 'tag baja';
+                var estadoLabel = u.activo !== false ? 'Activo' : 'Inactivo';
                 var fecha = u.created_at ? new Date(u.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-';
                 var isCurrentUser = currentUser && currentUser.email === u.correo;
 
@@ -247,7 +247,7 @@
 
         for (var i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                html += '<button class="' + (i === currentPage ? 'active' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+                html += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
             } else if (i === currentPage - 3 || i === currentPage + 3) {
                 html += '<button disabled>...</button>';
             }
@@ -280,7 +280,7 @@
             document.getElementById('usuarioNombre').value = usuario.nombre || '';
             document.getElementById('usuarioEmail').value = usuario.correo || '';
             document.getElementById('usuarioRol').value = usuario.rol || 'admin';
-            document.getElementById('usuarioEstado').value = usuario.estado || 'activo';
+            document.getElementById('usuarioEstado').value = usuario.activo !== false ? 'activo' : 'inactivo';
             passwordInput.removeAttribute('required');
             passwordInput.value = '';
             passwordInput.placeholder = 'Dejar vac&iacute;o para mantener actual';
@@ -298,7 +298,7 @@
     }
 
     function closeUsuarioModal() {
-        document.getElementById('usuarioModal').classList.remove('show');
+        closeModal('usuarioModal');
         editingUserId = null;
     }
 
@@ -341,7 +341,7 @@
                         nombre: nombre,
                         correo: email,
                         rol: rol,
-                        uid: authResult.data && authResult.data.user ? authResult.data.user.id : null
+                        id: authResult.data && authResult.data.user ? authResult.data.user.id : null
                     });
                 }
             }
@@ -358,7 +358,7 @@
 
     async function editUsuario(id) {
         try {
-            var usuario = allUsuarios.find(function (u) { return u.id === id; });
+            var usuario = allUsuarios.find(function (u) { return u.id == id; });
             if (usuario) openUsuarioModal(usuario);
         } catch (err) {
             console.error('Error editing usuario:', err);
