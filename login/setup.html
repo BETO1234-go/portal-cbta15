@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Admin - CBTA 15</title>
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('inventario-theme');
+            if (savedTheme === 'dark' || savedTheme === 'light') {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .setup-card { max-width: 500px; margin: 60px auto; padding: 32px; background: var(--surface); border-radius: 12px; box-shadow: var(--shadow); }
+        .setup-card h1 { font-size: 1.4rem; margin-bottom: 8px; }
+        .setup-card .subtitle { color: var(--muted); margin-bottom: 24px; }
+        .setup-card label { display: block; font-weight: 600; margin: 12px 0 4px; font-size: 0.85rem; }
+        .setup-card input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg, #f9f9f9); font-size: 0.9rem; box-sizing: border-box; }
+        .setup-card button { width: 100%; padding: 12px; margin-top: 20px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+        .setup-card button:hover { opacity: 0.9; }
+        .result { margin-top: 16px; padding: 12px; border-radius: 6px; display: none; }
+        .result.ok { background: #d4edda; color: #155724; display: block; }
+        .result.err { background: #f8d7da; color: #721c24; display: block; }
+        .result.loading { background: #fff3cd; color: #856404; display: block; }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="setup-card">
+            <h1><i class="fa-solid fa-user-shield"></i> Setup Inicial - Admin</h1>
+            <p class="subtitle">Crea el primer usuario administrador en Supabase.</p>
+
+            <label for="email">Correo</label>
+            <input type="email" id="email" value="admin@cbta15.edu.mx">
+
+            <label for="password">Contrasena (min. 6 caracteres)</label>
+            <input type="password" id="password" value="admin123">
+
+            <label for="nombre">Nombre completo</label>
+            <input type="text" id="nombre" value="Administrador CBTA 15">
+
+            <button onclick="setupAdmin()">Crear Admin</button>
+
+            <div id="resultado" class="result"></div>
+
+            <p style="margin-top:20px;text-align:center;">
+                <a href="../login/personal.html" style="color:var(--primary);">Ir a Login &rarr;</a>
+            </p>
+        </div>
+    </main>
+
+    <script src="../js/supabase.js"></script>
+    <script>
+        async function setupAdmin() {
+            var el = document.getElementById('resultado');
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value;
+            var nombre = document.getElementById('nombre').value.trim();
+
+            if (!email || !password || !nombre) {
+                el.className = 'result err';
+                el.textContent = 'Todos los campos son requeridos';
+                return;
+            }
+            if (password.length < 6) {
+                el.className = 'result err';
+                el.textContent = 'La contrasena debe tener al menos 6 caracteres';
+                return;
+            }
+
+            // Ensure supabase client is initialized
+            if (!supabase) {
+                initSupabase();
+            }
+            if (!supabase) {
+                el.className = 'result err';
+                el.textContent = 'Error: No se pudo conectar a Supabase';
+                return;
+            }
+
+            el.className = 'result loading';
+            el.textContent = 'Creando usuario...';
+
+            // 1. Create auth user
+            var { data, error } = await supabase.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: { nombre_completo: nombre, rol: 'administrador' }
+                }
+            });
+
+            if (error) {
+                el.className = 'result err';
+                el.textContent = 'Error Auth: ' + error.message;
+                return;
+            }
+
+            // 2. Insert into usuarios table
+            var { error: insertError } = await supabase
+                .from('usuarios')
+                .upsert({
+                    id: data.user.id,
+                    correo: email,
+                    nombre_completo: nombre,
+                    rol: 'administrador',
+                    activo: true
+                }, { onConflict: 'id' });
+
+            if (insertError) {
+                console.warn('Warning: could not insert into usuarios:', insertError.message);
+            }
+
+            el.className = 'result ok';
+            el.innerHTML = '<strong>Admin creado correctamente!</strong><br>Email: ' + email + '<br>Ahora puedes ir a la pagina de login.';
+
+            // 3. Auto-login
+            await supabase.auth.signOut();
+            var result = await supabaseLogin(email, password);
+            if (!result.error) {
+                setTimeout(function() {
+                    window.location.href = '../admin/reportes.html';
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>

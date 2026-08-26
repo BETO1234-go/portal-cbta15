@@ -69,12 +69,32 @@
                 return;
             }
 
-            var result = await supabaseLogin(correo, pass);
-            if (result.error) {
-                err.textContent = result.error;
+            err.style.display = 'none';
+            err.textContent = 'Conectando...';
+            err.style.display = 'block';
+            err.style.background = '#fff3cd';
+            err.style.color = '#856404';
+
+            try {
+                var result = await supabaseLogin(correo, pass);
+                if (result.error) {
+                    err.textContent = 'Error: ' + result.error;
+                    err.style.background = '#f8d7da';
+                    err.style.color = '#721c24';
+                    err.style.display = 'block';
+                } else {
+                    err.textContent = 'Inicio de sesion exitoso. Redirigiendo...';
+                    err.style.background = '#d4edda';
+                    err.style.color = '#155724';
+                    setTimeout(function() {
+                        window.location.href = '../admin/reportes.html';
+                    }, 500);
+                }
+            } catch(ex) {
+                err.textContent = 'Error inesperado: ' + ex.message;
+                err.style.background = '#f8d7da';
+                err.style.color = '#721c24';
                 err.style.display = 'block';
-            } else {
-                window.location.href = '../admin/reportes.html';
             }
         });
     </script>
