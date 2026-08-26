@@ -22,6 +22,16 @@ let supabase = null;
 function initSupabase() {
     if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'TU_URL_DE_SUPABASE') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Restore session if exists
+        var savedSession = localStorage.getItem('supabase_session');
+        if (savedSession) {
+            try {
+                var session = JSON.parse(savedSession);
+                supabase.auth.setSession(session).catch(function() {});
+            } catch(e) {}
+        }
+
         console.log('Supabase conectado');
         return true;
     }
@@ -48,6 +58,8 @@ async function supabaseLogin(correo, password) {
     });
 
     if (error) return { user: null, error: error.message };
+
+    localStorage.setItem('supabase_session', JSON.stringify(data.session));
 
     // Obtener rol del usuario desde la tabla usuarios
     const { data: perfil } = await supabase

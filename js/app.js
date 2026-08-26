@@ -205,6 +205,7 @@ function closeAlertModal() { closeModal('alertModal'); }
 function logout() {
     localStorage.removeItem('supabase_user');
     localStorage.removeItem('supabase_role');
+    localStorage.removeItem('supabase_session');
     window.location.href = '../index.html';
 }
 
@@ -227,3 +228,34 @@ function requireAuth() {
     }
     return true;
 }
+
+// --- Sidebar user info + role guards ---
+document.addEventListener('DOMContentLoaded', function () {
+    requireAuth();
+    var user = getAuthUser();
+    var role = getAuthRole();
+
+    // Show user info in sidebar
+    var footer = document.querySelector('.sidebar-footer');
+    if (footer && user) {
+        var info = document.createElement('div');
+        info.style.cssText = 'padding:0 20px 10px;font-size:0.82rem;opacity:0.8;border-top:1px solid var(--border,#ddd);margin-top:10px;padding-top:10px;';
+        var name = user.email || user.user_metadata?.email || 'Usuario';
+        info.innerHTML = '<i class="fa-solid fa-user"></i> ' + name + '<br><small style="text-transform:capitalize;">' + role + '</small>';
+        footer.insertBefore(info, footer.firstChild);
+    }
+
+    // Role-based nav hiding
+    if (role !== 'administrador') {
+        var adminOnly = ['solicitudes.html'];
+        var currentPath = window.location.pathname;
+        adminOnly.forEach(function(page) {
+            if (currentPath.indexOf(page) !== -1 && role !== 'administrador') {
+                window.location.href = 'reportes.html';
+            }
+            document.querySelectorAll('.sidebar-menu a[href="' + page + '"]').forEach(function(a) {
+                a.style.display = 'none';
+            });
+        });
+    }
+});
