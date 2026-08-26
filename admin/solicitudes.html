@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitudes de Inscripcion - CBTA 15</title>
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .badge-pendiente { background: #f39c12; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; }
+        .badge-aprobada { background: #27ae60; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; }
+        .badge-rechazada { background: #e74c3c; color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; }
+        .solicitud-detalle p { margin: 4px 0; }
+        .solicitud-detalle strong { display: inline-block; min-width: 130px; }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Portal de Alumnos CBTA 15">Portal de Alumnos</h2>
+                        <p>CBTA 15 - Administrador</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="reportes.html"><i class="fa-solid fa-table-columns"></i><span>Inicio / Reportes</span></a>
+                <a href="alumnos.html"><i class="fa-solid fa-user-graduate"></i><span>Alumnos</span></a>
+                <a href="grupos.html"><i class="fa-solid fa-users"></i><span>Grupos</span></a>
+                <a href="materias.html"><i class="fa-solid fa-book"></i><span>Materias</span></a>
+                <a href="calificaciones.html"><i class="fa-solid fa-clipboard-check"></i><span>Calificaciones</span></a>
+                <a href="asistencias.html"><i class="fa-solid fa-calendar-check"></i><span>Asistencias</span></a>
+                <a href="horarios.html"><i class="fa-solid fa-clock"></i><span>Horarios</span></a>
+                <a href="maestros.html"><i class="fa-solid fa-chalkboard-user"></i><span>Maestros</span></a>
+                <a href="riesgo.html"><i class="fa-solid fa-triangle-exclamation"></i><span>Riesgo academico</span></a>
+                <a href="solicitudes.html" class="activo"><i class="fa-solid fa-file-pen"></i><span>Solicitudes</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i><span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="#" onclick="logout(); return false;" style="display:flex;align-items:center;gap:14px;">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="contenido">
+            <header class="page-header">
+                <h1><i class="fa-solid fa-file-pen"></i> Solicitudes de Inscripcion</h1>
+                <div class="actions">
+                    <span id="contadorSolicitudes" style="opacity:0.7;"></span>
+                </div>
+            </header>
+
+            <div class="filters-form" style="margin-bottom:16px;">
+                <div class="filter-group">
+                    <label for="filtroEstatus">Filtrar por estatus</label>
+                    <select id="filtroEstatus" onchange="cargarSolicitudes()">
+                        <option value="">Todas</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="aprobada">Aprobadas</option>
+                        <option value="rechazada">Rechazadas</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Telefono</th>
+                            <th>Ciclo</th>
+                            <th>Turno</th>
+                            <th>Estatus</th>
+                            <th>Fecha</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="solicitudesBody">
+                        <!-- Datos cargados desde Supabase -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Ver Solicitud -->
+    <div class="modal" id="modalVer">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle de Solicitud</h3>
+                <button class="close-btn" onclick="closeModal('modalVer')">&times;</button>
+            </div>
+            <div class="modal-body solicitud-detalle" id="detalleSolicitud">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalVer')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarSolicitudes();
+        });
+
+        async function cargarSolicitudes() {
+            var estatus = document.getElementById('filtroEstatus').value;
+            var tbody = document.getElementById('solicitudesBody');
+
+            try {
+                var result = await DB.getSolicitudes(1, 100);
+                var data = result.data || [];
+
+                if (estatus) {
+                    data = data.filter(function(s) { return s.estatus === estatus; });
+                }
+
+                var pendientes = data.filter(function(s) { return s.estatus === 'pendiente'; }).length;
+                document.getElementById('contadorSolicitudes').textContent = data.length + ' solicitud(es) | ' + pendientes + ' pendiente(s)';
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;">No hay solicitudes</td></tr>';
+                    return;
+                }
+
+                var html = '';
+                data.forEach(function(s) {
+                    var badge = '';
+                    if (s.estatus === 'pendiente') badge = '<span class="badge-pendiente">Pendiente</span>';
+                    else if (s.estatus === 'aprobada') badge = '<span class="badge-aprobada">Aprobada</span>';
+                    else badge = '<span class="badge-rechazada">Rechazada</span>';
+
+                    var fecha = s.created_at ? new Date(s.created_at).toLocaleDateString('es-MX') : '-';
+
+                    html += '<tr>';
+                    html += '<td>' + s.id + '</td>';
+                    html += '<td>' + (s.nombre_completo || '-') + '</td>';
+                    html += '<td>' + (s.correo || '-') + '</td>';
+                    html += '<td>' + (s.telefono || '-') + '</td>';
+                    html += '<td>' + (s.ciclo_escolar || '-') + '</td>';
+                    html += '<td>' + (s.turno_preferente || '-') + '</td>';
+                    html += '<td>' + badge + '</td>';
+                    html += '<td>' + fecha + '</td>';
+                    html += '<td>';
+                    html += '<button class="btn btn-sm btn-secondary" onclick="verSolicitud(' + s.id + ')" title="Ver"><i class="fa-solid fa-eye"></i></button> ';
+                    if (s.estatus === 'pendiente') {
+                        html += '<button class="btn btn-sm btn-primary" onclick="cambiarEstatus(' + s.id + ', \'aprobada\')" title="Aprobar"><i class="fa-solid fa-check"></i></button> ';
+                        html += '<button class="btn btn-sm btn-danger" onclick="cambiarEstatus(' + s.id + ', \'rechazada\')" title="Rechazar"><i class="fa-solid fa-xmark"></i></button> ';
+                    }
+                    html += '<button class="btn btn-sm btn-danger" onclick="eliminarSolicitud(' + s.id + ')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>';
+                    html += '</td>';
+                    html += '</tr>';
+                });
+                tbody.innerHTML = html;
+            } catch(e) {
+                console.error('Error cargando solicitudes:', e);
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:red;">Error al cargar solicitudes</td></tr>';
+            }
+        }
+
+        async function verSolicitud(id) {
+            try {
+                var result = await DB.getSolicitudes(1, 100);
+                var s = result.data.find(function(x) { return x.id === id; });
+                if (!s) return;
+
+                var html = '';
+                html += '<p><strong>Nombre:</strong> ' + (s.nombre_completo || '-') + '</p>';
+                html += '<p><strong>Correo:</strong> ' + (s.correo || '-') + '</p>';
+                html += '<p><strong>Telefono:</strong> ' + (s.telefono || '-') + '</p>';
+                html += '<p><strong>Direccion:</strong> ' + (s.direccion || '-') + '</p>';
+                html += '<p><strong>Ciclo escolar:</strong> ' + (s.ciclo_escolar || '-') + '</p>';
+                html += '<p><strong>Turno preferente:</strong> ' + (s.turno_preferente || '-') + '</p>';
+                html += '<p><strong>Estatus:</strong> ' + (s.estatus || '-') + '</p>';
+                html += '<p><strong>Observaciones:</strong> ' + (s.observaciones || 'Sin observaciones') + '</p>';
+                html += '<p><strong>Fecha de solicitud:</strong> ' + (s.created_at ? new Date(s.created_at).toLocaleString('es-MX') : '-') + '</p>';
+
+                document.getElementById('detalleSolicitud').innerHTML = html;
+                openModal('modalVer');
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function cambiarEstatus(id, nuevoEstatus) {
+            var accion = nuevoEstatus === 'aprobada' ? 'aprobar' : 'rechazar';
+            if (!confirm('Desea ' + accion + ' esta solicitud?')) return;
+
+            try {
+                var { error } = await supabaseClient
+                    .from('solicitudes_inscripcion')
+                    .update({ estatus: nuevoEstatus })
+                    .eq('id', id);
+
+                if (error) {
+                    console.error(error);
+                    alert('Error: ' + error.message);
+                    return;
+                }
+                cargarSolicitudes();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function eliminarSolicitud(id) {
+            if (!confirm('Desea eliminar esta solicitud permanentemente?')) return;
+
+            try {
+                var { error } = await supabaseClient
+                    .from('solicitudes_inscripcion')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    console.error(error);
+                    alert('Error: ' + error.message);
+                    return;
+                }
+                cargarSolicitudes();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+</html>
