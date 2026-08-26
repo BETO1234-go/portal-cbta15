@@ -229,6 +229,21 @@ function requireAuth() {
     return true;
 }
 
+// --- Flash messages ---
+function showToast(message, type) {
+    type = type || 'info';
+    var existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+
+    var toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+    toast.innerHTML = '<span>' + message + '</span><button onclick="this.parentElement.remove()">&times;</button>';
+    document.body.appendChild(toast);
+
+    setTimeout(function() { toast.classList.add('show'); }, 10);
+    setTimeout(function() { toast.classList.remove('show'); setTimeout(function() { toast.remove(); }, 300); }, 4000);
+}
+
 // --- Sidebar user info + role guards ---
 document.addEventListener('DOMContentLoaded', function () {
     requireAuth();
