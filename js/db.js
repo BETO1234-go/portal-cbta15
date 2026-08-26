@@ -12,8 +12,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('alumnos')
                 .select('*', { count: 'exact' })
                 .order('apellido_paterno')
@@ -27,8 +27,8 @@ var DB = {
     },
 
     async createAlumno(alumno) {
-        if (supabase) {
-            const { data, error } = await supabase.from('alumnos').insert(alumno).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('alumnos').insert(alumno).select();
             if (error) throw error;
             return data[0];
         }
@@ -38,8 +38,8 @@ var DB = {
     },
 
     async deleteAlumno(id) {
-        if (supabase) {
-            const { error } = await supabase.from('alumnos').delete().eq('id', id);
+        if (sbClient) {
+            const { error } = await sbClient.from('alumnos').delete().eq('id', id);
             if (error) throw error;
             return true;
         }
@@ -48,8 +48,8 @@ var DB = {
     },
 
     async deleteAllAlumnos() {
-        if (supabase) {
-            const { error } = await supabase.from('alumnos').delete().neq('id', 0);
+        if (sbClient) {
+            const { error } = await sbClient.from('alumnos').delete().neq('id', 0);
             if (error) throw error;
             return true;
         }
@@ -66,8 +66,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('grupos')
                 .select('*, catalogo_grados!grado_id(nombre)', { count: 'exact' })
                 .order('id')
@@ -80,8 +80,8 @@ var DB = {
     },
 
     async createGrupo(grupo) {
-        if (supabase) {
-            const { data, error } = await supabase.from('grupos').insert(grupo).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('grupos').insert(grupo).select();
             if (error) throw error;
             return data[0];
         }
@@ -91,8 +91,8 @@ var DB = {
     },
 
     async deleteGrupo(id) {
-        if (supabase) {
-            const { error } = await supabase.from('grupos').delete().eq('id', id);
+        if (sbClient) {
+            const { error } = await sbClient.from('grupos').delete().eq('id', id);
             if (error) throw error;
             return true;
         }
@@ -109,8 +109,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('maestros')
                 .select('*, usuarios!usuario_id(correo)', { count: 'exact' })
                 .order('apellido_paterno')
@@ -123,8 +123,8 @@ var DB = {
     },
 
     async createMaestro(maestro) {
-        if (supabase) {
-            const { data, error } = await supabase.from('maestros').insert(maestro).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('maestros').insert(maestro).select();
             if (error) throw error;
             return data[0];
         }
@@ -134,8 +134,8 @@ var DB = {
     },
 
     async deleteMaestro(id) {
-        if (supabase) {
-            const { error } = await supabase.from('maestros').delete().eq('id', id);
+        if (sbClient) {
+            const { error } = await sbClient.from('maestros').delete().eq('id', id);
             if (error) throw error;
             return true;
         }
@@ -152,8 +152,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('materias')
                 .select('*, grupos!grupo_id(nombre, catalogo_grados!grado_id(nombre)), maestros!maestro_id(nombre)', { count: 'exact' })
                 .order('clave')
@@ -166,8 +166,8 @@ var DB = {
     },
 
     async createMateria(materia) {
-        if (supabase) {
-            const { data, error } = await supabase.from('materias').insert(materia).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('materias').insert(materia).select();
             if (error) throw error;
             return data[0];
         }
@@ -177,8 +177,8 @@ var DB = {
     },
 
     async deleteMateria(id) {
-        if (supabase) {
-            const { error } = await supabase.from('materias').delete().eq('id', id);
+        if (sbClient) {
+            const { error } = await sbClient.from('materias').delete().eq('id', id);
             if (error) throw error;
             return true;
         }
@@ -195,8 +195,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('calificaciones')
                 .select('*, alumnos!alumno_id(numero_control, nombre_completo), materias!materia_id(nombre, clave)', { count: 'exact' })
                 .range(from, to);
@@ -208,8 +208,8 @@ var DB = {
     },
 
     async createCalificacion(cal) {
-        if (supabase) {
-            const { data, error } = await supabase.from('calificaciones').insert(cal).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('calificaciones').insert(cal).select();
             if (error) throw error;
             return data[0];
         }
@@ -227,8 +227,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('asistencias')
                 .select('*, alumnos!alumno_id(numero_control, nombre_completo), materias!materia_id(nombre)', { count: 'exact' })
                 .range(from, to);
@@ -240,8 +240,8 @@ var DB = {
     },
 
     async createAsistencia(asi) {
-        if (supabase) {
-            const { data, error } = await supabase.from('asistencias').insert(asi).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('asistencias').insert(asi).select();
             if (error) throw error;
             return data[0];
         }
@@ -259,8 +259,8 @@ var DB = {
         const from = (page - 1) * perPage;
         const to = from + perPage - 1;
 
-        if (supabase) {
-            const { data, count, error } = await supabase
+        if (sbClient) {
+            const { data, count, error } = await sbClient
                 .from('riesgo_academico')
                 .select('*, alumnos!alumno_id(numero_control, nombre_completo), materias!materia_id(nombre), catalogo_causas!causa_id(nombre)', { count: 'exact' })
                 .order('created_at', { ascending: false })
@@ -273,8 +273,8 @@ var DB = {
     },
 
     async createRiesgo(riesgo) {
-        if (supabase) {
-            const { data, error } = await supabase.from('riesgo_academico').insert(riesgo).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('riesgo_academico').insert(riesgo).select();
             if (error) throw error;
             return data[0];
         }
@@ -287,8 +287,8 @@ var DB = {
     // SOLICITUDES
     // ========================================================
     async getSolicitudes() {
-        if (supabase) {
-            const { data, error } = await supabase
+        if (sbClient) {
+            const { data, error } = await sbClient
                 .from('solicitudes_inscripcion')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -299,8 +299,8 @@ var DB = {
     },
 
     async createSolicitud(sol) {
-        if (supabase) {
-            const { data, error } = await supabase.from('solicitudes_inscripcion').insert(sol).select();
+        if (sbClient) {
+            const { data, error } = await sbClient.from('solicitudes_inscripcion').insert(sol).select();
             if (error) throw error;
             return data[0];
         }
@@ -313,8 +313,8 @@ var DB = {
     // CATALOGOS (para selects)
     // ========================================================
     async getCatalogo(table) {
-        if (supabase) {
-            const { data, error } = await supabase.from(table).select('*').eq('activo', true).order('nombre');
+        if (sbClient) {
+            const { data, error } = await sbClient.from(table).select('*').eq('activo', true).order('nombre');
             if (error) throw error;
             return data;
         }
@@ -325,8 +325,8 @@ var DB = {
     },
 
     async getGrados() {
-        if (supabase) {
-            const { data } = await supabase.from('catalogo_grados').select('*').eq('activo', true).order('numero');
+        if (sbClient) {
+            const { data } = await sbClient.from('catalogo_grados').select('*').eq('activo', true).order('numero');
             return data || [];
         }
         return [
@@ -336,8 +336,8 @@ var DB = {
     },
 
     async getCausas() {
-        if (supabase) {
-            const { data } = await supabase.from('catalogo_causas').select('*').eq('activo', true);
+        if (sbClient) {
+            const { data } = await sbClient.from('catalogo_causas').select('*').eq('activo', true);
             return data || [];
         }
         return [
@@ -351,12 +351,12 @@ var DB = {
     // HORARIOS
     // ========================================================
     async getCatalogosHorarios() {
-        if (supabase) {
+        if (sbClient) {
             const [maestros, grados, grupos, materias] = await Promise.all([
-                supabase.from('maestros').select('id, nombre, apellido_paterno, apellido_materno'),
-                supabase.from('catalogo_grados').select('id, nombre'),
-                supabase.from('grupos').select('id, nombre, grado_id'),
-                supabase.from('materias').select('id, clave, nombre, grupo_id, maestro_id')
+                sbClient.from('maestros').select('id, nombre, apellido_paterno, apellido_materno'),
+                sbClient.from('catalogo_grados').select('id, nombre'),
+                sbClient.from('grupos').select('id, nombre, grado_id'),
+                sbClient.from('materias').select('id, clave, nombre, grupo_id, maestro_id')
             ]);
             return {
                 maestros: maestros.data || [],
@@ -369,8 +369,8 @@ var DB = {
     },
 
     async getHorario(docenteId, grupoId) {
-        if (supabase) {
-            let query = supabase.from('horarios_docentes').select('*');
+        if (sbClient) {
+            let query = sbClient.from('horarios_docentes').select('*');
             if (docenteId) query = query.eq('docente_id', docenteId);
             if (grupoId) query = query.eq('grupo_id', grupoId);
             const { data, error } = await query;
@@ -381,8 +381,8 @@ var DB = {
     },
 
     async saveHorario(horarios) {
-        if (supabase) {
-            const { error } = await supabase.from('horarios_docentes').insert(horarios);
+        if (sbClient) {
+            const { error } = await sbClient.from('horarios_docentes').insert(horarios);
             if (error) throw error;
             return true;
         }
@@ -390,8 +390,8 @@ var DB = {
     },
 
     async deleteHorario(docenteId, dia, hora) {
-        if (supabase) {
-            const { error } = await supabase.from('horarios_docentes')
+        if (sbClient) {
+            const { error } = await sbClient.from('horarios_docentes')
                 .delete()
                 .eq('docente_id', docenteId)
                 .eq('dia', dia)
@@ -403,8 +403,8 @@ var DB = {
     },
 
     async clearHorarios() {
-        if (supabase) {
-            const { error } = await supabase.from('horarios_docentes').delete().neq('id', 0);
+        if (sbClient) {
+            const { error } = await sbClient.from('horarios_docentes').delete().neq('id', 0);
             if (error) throw error;
             return true;
         }
@@ -415,13 +415,13 @@ var DB = {
     // ALUMNO DASHBOARD
     // ========================================================
     async getAlumnoDashboard(alumnoId) {
-        if (!supabase) return { alumno: null, calificaciones: [], asistencias: [], materias: [] };
+        if (!sbClient) return { alumno: null, calificaciones: [], asistencias: [], materias: [] };
 
         const [alumno, cal, asi, mat] = await Promise.all([
-            supabase.from('alumnos').select('*').eq('id', alumnoId).single(),
-            supabase.from('calificaciones').select('*, materias!materia_id(nombre)').eq('alumno_id', alumnoId),
-            supabase.from('asistencias').select('*, materias!materia_id(nombre)').eq('alumno_id', alumnoId),
-            supabase.from('materias').select('*, maestros!maestro_id(nombre)')
+            sbClient.from('alumnos').select('*').eq('id', alumnoId).single(),
+            sbClient.from('calificaciones').select('*, materias!materia_id(nombre)').eq('alumno_id', alumnoId),
+            sbClient.from('asistencias').select('*, materias!materia_id(nombre)').eq('alumno_id', alumnoId),
+            sbClient.from('materias').select('*, maestros!maestro_id(nombre)')
                 .in('grupo_id', [alumno.data?.grupo_id])
         ]);
 

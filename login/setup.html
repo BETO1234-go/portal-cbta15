@@ -90,8 +90,8 @@
 
             btn.disabled = true;
 
-            if (!supabase) initSupabase();
-            if (!supabase) {
+            if (!sbClient) initSupabase();
+            if (!sbClient) {
                 log(el, 'Error: No se pudo conectar a Supabase. Verifica la URL y Key.', 'err');
                 btn.disabled = false;
                 return;
@@ -101,7 +101,7 @@
             log(el, 'Verificando credenciales...', 'loading');
             try {
                 var existingCheck = await withTimeout(
-                    supabase.auth.signInWithPassword({ email: email, password: password }),
+                    sbClient.auth.signInWithPassword({ email: email, password: password }),
                     10000
                 );
                 if (existingCheck.data && existingCheck.data.session) {
@@ -118,7 +118,7 @@
                     btn.disabled = false;
                     return;
                 }
-                await supabase.auth.signOut();
+                await sbClient.auth.signOut();
             } catch(e) {
                 console.log('Login check:', e.message);
             }
@@ -128,7 +128,7 @@
             var signUpResult;
             try {
                 signUpResult = await withTimeout(
-                    supabase.auth.signUp({
+                    sbClient.auth.signUp({
                         email: email,
                         password: password,
                         options: {
@@ -166,7 +166,7 @@
             log(el, 'Guardando perfil...', 'loading');
             if (data && data.user) {
                 try {
-                    await supabase.from('usuarios').upsert({
+                    await sbClient.from('usuarios').upsert({
                         id: data.user.id,
                         correo: email,
                         nombre_completo: nombre,

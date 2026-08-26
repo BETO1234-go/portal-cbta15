@@ -218,7 +218,7 @@
             var accion = nuevoEstatus === 'aprobada' ? 'aprobar' : 'rechazar';
             if (!confirm('Desea ' + accion + ' esta solicitud?')) return;
             try {
-                var { error } = await supabaseClient
+                var { error } = await sbClient
                     .from('solicitudes_inscripcion')
                     .update({ estatus: nuevoEstatus })
                     .eq('id', id);
@@ -236,7 +236,7 @@
         async function eliminarSolicitud(id) {
             if (!confirm('Desea eliminar esta solicitud permanentemente?')) return;
             try {
-                var { error } = await supabaseClient
+                var { error } = await sbClient
                     .from('solicitudes_inscripcion')
                     .delete()
                     .eq('id', id);
