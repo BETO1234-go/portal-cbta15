@@ -2592,3 +2592,46 @@ thead #selectAllCheckbox{
         grid-template-columns:repeat(4, minmax(0, 1fr));
     }
 }
+
+/* === Paginacion === */
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+.page-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border, #d8ddd4);
+    background: var(--surface, #f7f8f6);
+    color: var(--text, #2f3e34);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    min-width: 32px;
+    text-align: center;
+}
+.page-btn:hover:not([disabled]) {
+    background: var(--primary-soft, #dce9d8);
+    border-color: var(--primary, #2f943c);
+}
+.page-btn.active {
+    background: var(--primary, #2f943c);
+    color: #fff;
+    border-color: var(--primary, #2f943c);
+}
+.page-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.page-ellipsis {
+    padding: 0 6px;
+    color: var(--muted, #6d746b);
+}
+.page-info {
+    margin-left: 12px;
+    font-size: 0.82rem;
+    color: var(--muted, #6d746b);
+}

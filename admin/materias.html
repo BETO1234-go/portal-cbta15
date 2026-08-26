@@ -96,6 +96,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="paginationControls"></div>
         </main>
     </div>
 
@@ -215,7 +216,66 @@
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
 <script src="../js/data.js"></script>
+<script src="../js/pagination.js"></script>
     <script>
+        var materiasData = [];
+        var materiasCurrentPage = 1;
+        var materiasSearchTerm = '';
+
+        function renderMateriasTabla() {
+            var filtered = materiasData;
+            if (materiasSearchTerm) {
+                var term = materiasSearchTerm;
+                filtered = materiasData.filter(function(m) {
+                    var text = ((m.clave || '') + ' ' + (m.nombre || '') + ' ' + (m.grupo || '') + ' ' + (m.maestro || '')).toLowerCase();
+                    return text.includes(term);
+                });
+            }
+            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
+            if (materiasCurrentPage > totalPages) materiasCurrentPage = totalPages || 1;
+            var start = (materiasCurrentPage - 1) * Pagination.PAGE_SIZE;
+            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var tbody = document.getElementById('tabla_materias').querySelector('tbody');
+            if (pageData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">No hay materias</td></tr>';
+                Pagination.render('paginationControls', materiasCurrentPage, totalPages, function(p) { materiasCurrentPage = p; renderMateriasTabla(); });
+                return;
+            }
+            var html = '';
+            pageData.forEach(function(m) {
+                html += '<tr>';
+                html += '<td>' + (m.clave || '-') + '</td>';
+                html += '<td>' + (m.nombre || '-') + '</td>';
+                html += '<td>' + (m.grupo || '-') + '</td>';
+                html += '<td>' + (m.maestro || '-') + '</td>';
+                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+            Pagination.render('paginationControls', materiasCurrentPage, totalPages, function(p) { materiasCurrentPage = p; renderMateriasTabla(); });
+        }
+
+        async function populateMaterias() {
+            var result = await DB.getMaterias(1, 100);
+            materiasData = (result.data || []).map(function(m) {
+                var grupoNombre = '-';
+                if (m.grupos) {
+                    grupoNombre = m.grupos.nombre;
+                    if (m.grupos.catalogo_grados) grupoNombre = m.grupos.catalogo_grados.nombre + ' ' + m.grupos.nombre;
+                }
+                var maestroNombre = '-';
+                if (m.maestros) maestroNombre = m.maestros.nombre_completo || m.maestros.nombre;
+                return {
+                    clave: m.clave,
+                    nombre: m.nombre,
+                    grupo: grupoNombre,
+                    maestro: maestroNombre
+                };
+            });
+            materiasCurrentPage = 1;
+            renderMateriasTabla();
+        }
+
         var materiaIdAEliminar = null;
 
         function setEliminarMateria(id) {
@@ -224,12 +284,15 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.btn-eliminar-materia').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    setEliminarMateria(this.getAttribute('data-id'));
+            populateMaterias();
+            var searchEl = document.querySelector('[data-target="tabla_materias"]');
+            if (searchEl) {
+                searchEl.addEventListener('keyup', function() {
+                    materiasSearchTerm = this.value.toLowerCase();
+                    materiasCurrentPage = 1;
+                    renderMateriasTabla();
                 });
-            });
-
+            }
             document.getElementById('btnConfirmarEliminarMateria').addEventListener('click', async function() {
                 if (materiaIdAEliminar) {
                     await DB.deleteMateria(materiaIdAEliminar);

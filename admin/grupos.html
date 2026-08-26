@@ -88,6 +88,7 @@
                 <!-- Datos cargados desde Supabase -->
             </tbody>
         </table>
+        <div id="paginationControls"></div>
     </main>
 </div>
 
@@ -193,7 +194,55 @@
     <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
 <script src="../js/data.js"></script>
+<script src="../js/pagination.js"></script>
 <script>
+    var gruposData = [];
+    var gruposCurrentPage = 1;
+    var gruposSearchTerm = '';
+
+    function renderGruposTabla() {
+        var filtered = gruposData;
+        if (gruposSearchTerm) {
+            var term = gruposSearchTerm;
+            filtered = gruposData.filter(function(g) {
+                var text = ((g.grado || '') + ' ' + (g.grupo || '')).toLowerCase();
+                return text.includes(term);
+            });
+        }
+        var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
+        if (gruposCurrentPage > totalPages) gruposCurrentPage = totalPages || 1;
+        var start = (gruposCurrentPage - 1) * Pagination.PAGE_SIZE;
+        var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+        var tbody = document.getElementById('tabla_grupos').querySelector('tbody');
+        if (pageData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;">No hay grupos</td></tr>';
+            Pagination.render('paginationControls', gruposCurrentPage, totalPages, function(p) { gruposCurrentPage = p; renderGruposTabla(); });
+            return;
+        }
+        var html = '';
+        pageData.forEach(function(g) {
+            html += '<tr>';
+            html += '<td>' + (g.grado || '-') + '</td>';
+            html += '<td>' + (g.grupo || '-') + '</td>';
+            html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+        Pagination.render('paginationControls', gruposCurrentPage, totalPages, function(p) { gruposCurrentPage = p; renderGruposTabla(); });
+    }
+
+    async function populateGrupos() {
+        var result = await DB.getGrupos(1, 100);
+        gruposData = (result.data || []).map(function(g) {
+            return {
+                grado: g.grado || (g.catalogo_grados ? g.catalogo_grados.nombre : g.grado) || '-',
+                grupo: g.grupo || g.nombre || '-'
+            };
+        });
+        gruposCurrentPage = 1;
+        renderGruposTabla();
+    }
+
     var grupoIdAEliminar = null;
 
     function setEliminarGrupo(id) {
@@ -202,12 +251,15 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.btn-eliminar-grupo').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                setEliminarGrupo(this.getAttribute('data-id'));
+        populateGrupos();
+        var buscadEl = document.getElementById('buscador');
+        if (buscadEl) {
+            buscadEl.addEventListener('keyup', function() {
+                gruposSearchTerm = this.value.toLowerCase();
+                gruposCurrentPage = 1;
+                renderGruposTabla();
             });
-        });
-
+        }
         document.getElementById('btnConfirmarEliminarGrupo').addEventListener('click', async function() {
             if (grupoIdAEliminar) {
                 await DB.deleteGrupo(grupoIdAEliminar);

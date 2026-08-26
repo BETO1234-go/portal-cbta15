@@ -109,6 +109,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="paginationControls"></div>
         </main>
     </div>
 
@@ -340,17 +341,64 @@
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
 <script src="../js/data.js"></script>
+<script src="../js/pagination.js"></script>
     <script>
-        function filtrarAlumnos() {
-            const input = document.getElementById('searchAlumnos');
-            const filter = input.value.toLowerCase();
-            const tbody = document.querySelector('.students-table tbody');
-            const rows = tbody.querySelectorAll('tr');
+        var alumnosData = [];
+        var alumnosCurrentPage = 1;
+        var alumnosSearchTerm = '';
 
-            rows.forEach(function(row) {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
+        function filtrarAlumnos() {
+            var input = document.getElementById('searchAlumnos');
+            alumnosSearchTerm = input.value.toLowerCase();
+            alumnosCurrentPage = 1;
+            renderAlumnosTabla();
+        }
+
+        function renderAlumnosTabla() {
+            var filtered = alumnosData;
+            if (alumnosSearchTerm) {
+                var term = alumnosSearchTerm;
+                filtered = alumnosData.filter(function(a) {
+                    var text = ((a.numero_control || '') + ' ' + (a.nombre_completo || '') + ' ' + (a.grado || '') + ' ' + (a.grupo || '') + ' ' + (a.lugar || '') + ' ' + (a.carrera || '') + ' ' + (a.modalidad || '') + ' ' + (a.generacion || '') + ' ' + (a.sexo || '') + ' ' + (a.activo ? 'Si' : 'No')).toLowerCase();
+                    return text.includes(term);
+                });
+            }
+            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
+            if (alumnosCurrentPage > totalPages) alumnosCurrentPage = totalPages || 1;
+            var start = (alumnosCurrentPage - 1) * Pagination.PAGE_SIZE;
+            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var tbody = document.querySelector('.students-table tbody');
+            if (!tbody) return;
+            if (pageData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;">No hay alumnos</td></tr>';
+                Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; renderAlumnosTabla(); });
+                return;
+            }
+            var html = '';
+            pageData.forEach(function(a) {
+                html += '<tr>';
+                html += '<td>' + (a.numero_control || '-') + '</td>';
+                html += '<td>' + (a.nombre_completo || '-') + '</td>';
+                html += '<td>' + (a.grado || '-') + '</td>';
+                html += '<td>' + (a.grupo || '-') + '</td>';
+                html += '<td>' + (a.lugar || '-') + '</td>';
+                html += '<td>' + (a.carrera || '-') + '</td>';
+                html += '<td>' + (a.modalidad || '-') + '</td>';
+                html += '<td>' + (a.generacion || '-') + '</td>';
+                html += '<td>' + (a.sexo || '-') + '</td>';
+                html += '<td>' + (a.activo ? 'Si' : 'No') + '</td>';
+                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+                html += '</tr>';
             });
+            tbody.innerHTML = html;
+            Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; renderAlumnosTabla(); });
+        }
+
+        async function populateAlumnos() {
+            var result = await DB.getAlumnos(1, 100);
+            alumnosData = result.data || [];
+            alumnosCurrentPage = 1;
+            renderAlumnosTabla();
         }
 
         var alumnoIdAEliminar = null;
@@ -361,12 +409,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.btn-eliminar-alumno').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    setEliminarAlumno(this.getAttribute('data-id'));
-                });
-            });
-
+            populateAlumnos();
             document.getElementById('formEliminarAlumno').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 if (alumnoIdAEliminar) {
