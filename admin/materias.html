@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Materias - Portal CBTA 15</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .students-table th, .students-table td { padding: 0.4rem 1rem; }
+        .students-table .btn-sm { padding: 0.4rem; font-size: 0.78rem; }
+    </style>
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('inventario-theme');
+            if (savedTheme === 'dark' || savedTheme === 'light') {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="contenedor">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Portal de Alumnos CBTA 15">Portal de Alumnos</h2>
+                        <p>CBTA 15 - Administrador</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="reportes.html"><i class="fa-solid fa-table-columns"></i><span>Inicio / Reportes</span></a>
+                <a href="alumnos.html"><i class="fa-solid fa-user-graduate"></i><span>Alumnos</span></a>
+                <a href="grupos.html"><i class="fa-solid fa-users"></i><span>Grupos</span></a>
+                <a href="materias.html" class="activo"><i class="fa-solid fa-book"></i><span>Materias</span></a>
+                <a href="calificaciones.html"><i class="fa-solid fa-clipboard-check"></i><span>Calificaciones</span></a>
+                <a href="asistencias.html"><i class="fa-solid fa-calendar-check"></i><span>Asistencias</span></a>
+                <a href="horarios.html"><i class="fa-solid fa-clock"></i><span>Horarios</span></a>
+                <a href="maestros.html"><i class="fa-solid fa-chalkboard-user"></i><span>Maestros</span></a>
+                <a href="riesgo.html"><i class="fa-solid fa-triangle-exclamation"></i><span>Riesgo academico</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i><span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="#" onclick="logout(); return false;" style="display:flex;align-items:center;gap:14px;">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span>
+                </a>
+            </div>
+        </aside>
+        <main class="contenido">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <h1>Materias</h1>
+                    <p>Administracion de materias</p>
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn btn-primary" onclick="openModal('modalMateria')">
+                        <i class="fa-solid fa-plus"></i> Nueva materia
+                    </button>
+                    <button class="btn btn-secondary" onclick="openModal('modalImportarMaterias')">
+                        <i class="fa-solid fa-file-excel"></i> Importar Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-controls">
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Buscar materia..." data-target="tabla_materias">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="tabla_materias" class="students-table">
+                    <thead>
+                        <tr>
+                            <th>Clave</th>
+                            <th>Materia</th>
+                            <th>Grupo</th>
+                            <th>Maestro</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Datos cargados desde Supabase -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Eliminar Materia -->
+    <div class="modal-overlay" id="modalEliminarMateria">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h3>Eliminar materia</h3>
+                <button class="modal-close" onclick="closeModal('modalEliminarMateria')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Estas seguro de que deseas eliminar esta materia?</p>
+                <p class="text-muted">Esta accion no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEliminarMateria')">Cancelar</button>
+                <button class="btn btn-danger" id="btnConfirmarEliminarMateria">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Materia -->
+    <div class="modal-overlay" id="modalMateria">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Nueva Materia</h3>
+                <button class="modal-close" onclick="closeModal('modalMateria')">&times;</button>
+            </div>
+            <form id="formMateria">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="clave">Clave</label>
+                        <input type="text" id="clave" name="clave" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="grupo_id">Grupo</label>
+                        <select id="grupo_id" name="grupo_id" required>
+                            <option value="">Seleccionar grupo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maestro_id">Maestro</label>
+                        <select id="maestro_id" name="maestro_id" required>
+                            <option value="">Seleccionar maestro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalMateria')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Importar Materias -->
+    <div class="modal-overlay" id="modalImportarMaterias">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Importar Materias desde Excel</h3>
+                <button class="modal-close" onclick="closeModal('modalImportarMaterias')">&times;</button>
+            </div>
+            <form id="formImportarMaterias" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="archivo_materias">Archivo Excel (.xlsx)</label>
+                        <input type="file" id="archivo_materias" name="archivo_excel" accept=".xlsx,.xls,.csv" required>
+                    </div>
+                    <p class="text-muted">Formatos aceptados: .xlsx, .xls, .csv</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalImportarMaterias')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-file-import"></i> Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar -->
+    <div class="component-modal" id="confirmModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="confirmModalTitle">Confirmar</h2>
+                <button class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn btn-primary" id="confirmModalBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Alerta -->
+    <div class="component-modal" id="alertModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="alertModalTitle">Aviso</h2>
+                <button class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn btn-primary" onclick="closeAlertModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+        <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
+<script src="../js/data.js"></script>
+    <script>
+        var materiaIdAEliminar = null;
+
+        function setEliminarMateria(id) {
+            materiaIdAEliminar = id;
+            openModal('modalEliminarMateria');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.btn-eliminar-materia').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    setEliminarMateria(this.getAttribute('data-id'));
+                });
+            });
+
+            document.getElementById('btnConfirmarEliminarMateria').addEventListener('click', async function() {
+                if (materiaIdAEliminar) {
+                    await DB.deleteMateria(materiaIdAEliminar);
+                    closeModal('modalEliminarMateria');
+                    populateMaterias();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

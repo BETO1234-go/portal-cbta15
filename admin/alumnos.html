@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="">
+    <title>Alumnos - Portal de Alumnos CBTA 15</title>
+
+    <!-- Tema -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        .students-table th,
+        .students-table td {
+            padding: 0.4rem 1fr;
+        }
+
+        .students-table .btn-sm {
+            padding: 0.4rem;
+            font-size: 0.78rem;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="contenedor">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Portal de Alumnos CBTA 15">Portal de Alumnos</h2>
+                        <p>CBTA 15 - Administrador</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="reportes.html"><i class="fa-solid fa-table-columns"></i><span>Inicio / Reportes</span></a>
+                <a href="alumnos.html" class="activo"><i class="fa-solid fa-user-graduate"></i><span>Alumnos</span></a>
+                <a href="grupos.html"><i class="fa-solid fa-users"></i><span>Grupos</span></a>
+                <a href="materias.html"><i class="fa-solid fa-book"></i><span>Materias</span></a>
+                <a href="calificaciones.html"><i class="fa-solid fa-clipboard-check"></i><span>Calificaciones</span></a>
+                <a href="asistencias.html"><i class="fa-solid fa-calendar-check"></i><span>Asistencias</span></a>
+                <a href="horarios.html"><i class="fa-solid fa-clock"></i><span>Horarios</span></a>
+                <a href="maestros.html"><i class="fa-solid fa-chalkboard-user"></i><span>Maestros</span></a>
+                <a href="riesgo.html"><i class="fa-solid fa-triangle-exclamation"></i><span>Riesgo academico</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i><span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="#" onclick="logout(); return false;" style="display:flex;align-items:center;gap:14px;">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="contenido">
+            <header class="page-header">
+                <h1><i class="fa-solid fa-user-graduate"></i> Alumnos</h1>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openModal('modalAlumno')">
+                        <i class="fa-solid fa-plus"></i> Nuevo Alumno
+                    </button>
+                    <button class="btn btn-secondary" onclick="openModal('modalImportar')">
+                        <i class="fa-solid fa-file-import"></i> Importar Excel
+                    </button>
+                    <button class="btn btn-danger" onclick="openModal('modalEliminarTodos')">
+                        <i class="fa-solid fa-trash"></i> Eliminar Todos
+                    </button>
+                </div>
+            </header>
+
+            <div class="search-bar">
+                <input type="text" id="searchAlumnos" placeholder="Buscar alumno..." onkeyup="filtrarAlumnos()">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table students-table">
+                    <thead>
+                        <tr>
+                            <th>No. Control</th>
+                            <th>Nombre completo</th>
+                            <th>Grado</th>
+                            <th>Grupo</th>
+                            <th>Lugar</th>
+                            <th>Carrera</th>
+                            <th>Modalidad</th>
+                            <th>Generacion</th>
+                            <th>Sexo</th>
+                            <th>Activo</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Datos cargados desde Supabase -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Eliminar Alumno -->
+    <div class="modal" id="modalEliminarAlumno">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Eliminar Alumno</h3>
+                <button class="close-btn" onclick="closeModal('modalEliminarAlumno')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este alumno?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEliminarAlumno')">Cancelar</button>
+                <form id="formEliminarAlumno" method="POST" action="">
+                    <input type="hidden" name="_token" value="">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nuevo/Editar Alumno -->
+    <div class="modal" id="modalAlumno">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nuevo Alumno</h3>
+                <button class="close-btn" onclick="closeModal('modalAlumno')">&times;</button>
+            </div>
+            <form id="formAlumno" method="POST" action="">
+                <input type="hidden" name="_token" value="">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="matricula">No. Control *</label>
+                            <input type="text" id="matricula" name="matricula" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre">Nombre *</label>
+                            <input type="text" id="nombre" name="nombre" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="apellido_paterno">Apellido Paterno *</label>
+                            <input type="text" id="apellido_paterno" name="apellido_paterno" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido_materno">Apellido Materno</label>
+                            <input type="text" id="apellido_materno" name="apellido_materno" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="grado_id">Grado *</label>
+                            <select id="grado_id" name="grado_id" class="form-control" required>
+                                <option value="">Seleccionar grado</option>
+                                <option value="1">1°</option>
+                                <option value="2">2°</option>
+                                <option value="3">3°</option>
+                                <option value="4">4°</option>
+                                <option value="5">5°</option>
+                                <option value="6">6°</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="grupo">Grupo *</label>
+                            <select id="grupo" name="grupo" class="form-control" required>
+                                <option value="">Seleccionar grupo</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lugar">Lugar *</label>
+                            <select id="lugar" name="lugar" class="form-control" required>
+                                <option value="">Seleccionar lugar</option>
+                                <option value="ESCOM">ESCOM</option>
+                                <option value="ENCB">ENCB</option>
+                                <option value="ESIA">ESIA</option>
+                                <option value="EST">EST</option>
+                                <option value="UPIITA">UPIITA</option>
+                                <option value="ESFM">ESFM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="carrera">Carrera *</label>
+                            <select id="carrera" name="carrera" class="form-control" required>
+                                <option value="">Seleccionar carrera</option>
+                                <option value="ISC">Ingenieria en Sistemas Computacionales</option>
+                                <option value="IIA">Ingenieria en Inteligencia Artificial</option>
+                                <option value="LCD">Licenciatura en Ciencia de Datos</option>
+                                <option value="IB">Ingenieria Biomedica</option>
+                                <option value="IE">Ingenieria Electronica</option>
+                                <option value="MCA">Ingenieria en Comunicaciones y Automatica</option>
+                                <option value="MT">Ingenieria en Tecnologias</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modalidad">Modalidad *</label>
+                            <select id="modalidad" name="modalidad" class="form-control" required>
+                                <option value="">Seleccionar modalidad</option>
+                                <option value="TSU">TSU</option>
+                                <option value="ING">Ingenieria</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="generacion">Generacion *</label>
+                            <select id="generacion" name="generacion" class="form-control" required>
+                                <option value="">Seleccionar generacion</option>
+                                <option value="2022-2025">2022-2025</option>
+                                <option value="2023-2026">2023-2026</option>
+                                <option value="2024-2027">2024-2027</option>
+                                <option value="2025-2028">2025-2028</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sexo">Sexo *</label>
+                            <select id="sexo" name="sexo" class="form-control" required>
+                                <option value="">Seleccionar sexo</option>
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="activo">Activo</label>
+                            <select id="activo" name="activo" class="form-control">
+                                <option value="1">Si</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalAlumno')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Importar Excel -->
+    <div class="modal" id="modalImportar">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Importar Alumnos desde Excel</h3>
+                <button class="close-btn" onclick="closeModal('modalImportar')">&times;</button>
+            </div>
+            <form id="formImportar" method="POST" action="" enctype="multipart/form-data">
+                <input type="hidden" name="_token" value="">
+                <div class="modal-body">
+                    <p>Selecciona un archivo Excel (.xlsx, .xls) con los datos de los alumnos.</p>
+                    <div class="form-group">
+                        <label for="archivo_excel">Archivo Excel *</label>
+                        <input type="file" id="archivo_excel" name="archivo" class="form-control" accept=".xlsx,.xls" required>
+                    </div>
+                    <div class="text-muted">
+                        <small>El archivo debe contener las columnas: matricula, nombre, apellido_paterno, apellido_materno, grado, grupo, lugar, carrera, modalidad, generacion, sexo.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalImportar')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-file-import"></i> Importar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Eliminar Todos -->
+    <div class="modal" id="modalEliminarTodos">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Eliminar Todos los Alumnos</h3>
+                <button class="close-btn" onclick="closeModal('modalEliminarTodos')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar <strong>TODOS</strong> los alumnos?</p>
+                <p class="text-muted">Esta acción eliminará permanentemente todos los registros y no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEliminarTodos')">Cancelar</button>
+                <form id="formEliminarTodos" method="POST" action="">
+                    <input type="hidden" name="_token" value="">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Eliminar Todos</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="component-modal" id="confirmModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="confirmModalTitle">Confirmar</h2>
+                <button class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-agregar" id="confirmModalBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="component-modal" id="alertModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="alertModalTitle">Aviso</h2>
+                <button class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn-agregar" onclick="closeAlertModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+        <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
+<script src="../js/data.js"></script>
+    <script>
+        function filtrarAlumnos() {
+            const input = document.getElementById('searchAlumnos');
+            const filter = input.value.toLowerCase();
+            const tbody = document.querySelector('.students-table tbody');
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(function(row) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
+        var alumnoIdAEliminar = null;
+
+        function setEliminarAlumno(id) {
+            alumnoIdAEliminar = id;
+            openModal('modalEliminarAlumno');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btn-eliminar-alumno').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    setEliminarAlumno(this.getAttribute('data-id'));
+                });
+            });
+
+            document.getElementById('formEliminarAlumno').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                if (alumnoIdAEliminar) {
+                    await DB.deleteAlumno(alumnoIdAEliminar);
+                    closeModal('modalEliminarAlumno');
+                    populateAlumnos();
+                }
+            });
+
+            document.getElementById('formEliminarTodos').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await DB.deleteAllAlumnos();
+                closeModal('modalEliminarTodos');
+                populateAlumnos();
+            });
+        });
+    </script>
+</body>
+</html>

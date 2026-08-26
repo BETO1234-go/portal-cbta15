@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horarios - Portal CBTA 15</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script>
+        (function(){
+            var t=localStorage.getItem('theme');
+            if(t==='dark'){document.documentElement.classList.add('dark');}
+            else if(!t){document.documentElement.classList.add('dark');}
+        })();
+    </script>
+    <style>
+        /* ===================== HORARIOS PAGE STYLES ===================== */
+
+        /* Header area */
+        .horarios-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .horarios-header .header-left h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+        .horarios-header .header-left p {
+            margin: 2px 0 0;
+            opacity: .7;
+            font-size: .9rem;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 500;
+            transition: background .2s, transform .1s;
+        }
+        .btn:active { transform: scale(.97); }
+        .btn-primary {
+            background: var(--accent, #4361ee);
+            color: #fff;
+        }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-secondary {
+            background: var(--surface-alt, #e9ecef);
+            color: var(--text, #333);
+        }
+        .btn-secondary:hover { filter: brightness(.95); }
+        .btn-danger {
+            background: #e63946;
+            color: #fff;
+        }
+        .btn-danger:hover { filter: brightness(1.1); }
+        .btn-success {
+            background: #2a9d8f;
+            color: #fff;
+        }
+        .btn-success:hover { filter: brightness(1.1); }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: .8rem;
+        }
+        .btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        /* Mode selector */
+        .mode-selector {
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #dee2e6);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+        .mode-selector label {
+            font-weight: 600;
+            font-size: .9rem;
+        }
+        .radio-group {
+            display: flex;
+            gap: 18px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        /* Controls row */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 160px;
+            flex: 1;
+        }
+        .control-group label {
+            font-size: .8rem;
+            font-weight: 600;
+            opacity: .8;
+        }
+        .control-group select,
+        .control-group input {
+            padding: 8px 10px;
+            border: 1px solid var(--border, #ced4da);
+            border-radius: 6px;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
+            font-size: .9rem;
+        }
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: 2px solid var(--accent, #4361ee);
+            border-color: transparent;
+        }
+
+        /* Summary cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .summary-card {
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #dee2e6);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+        .summary-card .card-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent, #4361ee);
+            line-height: 1;
+        }
+        .summary-card .card-label {
+            font-size: .75rem;
+            opacity: .7;
+            margin-top: 4px;
+        }
+
+        /* Parameters panel */
+        .params-panel {
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #dee2e6);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .params-panel h3 {
+            margin: 0 0 12px;
+            font-size: 1rem;
+        }
+        .params-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        .params-grid .control-group {
+            min-width: 120px;
+            flex: 0 0 auto;
+        }
+        .day-checkboxes {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .day-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: .85rem;
+            font-weight: 400;
+        }
+        .day-checkboxes input[type="checkbox"] {
+            accent-color: var(--accent, #4361ee);
+        }
+
+        /* Action buttons row */
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Schedule grid */
+        .schedule-grid-wrapper {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+            font-size: .85rem;
+        }
+        .schedule-table th,
+        .schedule-table td {
+            border: 1px solid var(--border, #dee2e6);
+            padding: 8px 6px;
+            text-align: center;
+            vertical-align: top;
+            min-width: 120px;
+        }
+        .schedule-table thead th {
+            background: var(--accent, #4361ee);
+            color: #fff;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .schedule-table tbody tr:nth-child(even) {
+            background: var(--surface-alt, #f8f9fa);
+        }
+        .schedule-table .hora-cell {
+            font-weight: 600;
+            background: var(--surface, #fff);
+            min-width: 80px;
+            max-width: 100px;
+            white-space: nowrap;
+        }
+        .slot {
+            border: 2px dashed var(--border, #ced4da);
+            border-radius: 6px;
+            padding: 6px 4px;
+            min-height: 48px;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            position: relative;
+        }
+        .slot:hover {
+            border-color: var(--accent, #4361ee);
+            background: rgba(67, 97, 238, .05);
+        }
+        .slot.filled {
+            border-style: solid;
+            background: rgba(42, 157, 143, .1);
+            border-color: #2a9d8f;
+        }
+        .slot.filled .slot-materia {
+            font-weight: 600;
+            font-size: .82rem;
+            color: var(--text, #333);
+        }
+        .slot.filled .slot-docente {
+            font-size: .72rem;
+            opacity: .7;
+            margin-top: 2px;
+        }
+        .slot.filled .slot-grupo {
+            font-size: .7rem;
+            opacity: .6;
+            margin-top: 1px;
+        }
+        .slot-delete {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            background: #e63946;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: .65rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .slot:hover .slot-delete {
+            display: flex;
+        }
+        .slot-empty-text {
+            font-size: .75rem;
+            opacity: .4;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: var(--surface, #fff);
+            border-radius: 10px;
+            padding: 24px;
+            max-width: 480px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 40px rgba(0,0,0,.2);
+        }
+        .modal-box h3 {
+            margin: 0 0 12px;
+        }
+        .modal-box p {
+            margin: 0 0 8px;
+            font-size: .9rem;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #dee2e6);
+            border-left: 4px solid var(--accent, #4361ee);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: .85rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,.1);
+            animation: toastIn .3s ease;
+            max-width: 320px;
+        }
+        .toast.success { border-left-color: #2a9d8f; }
+        .toast.error { border-left-color: #e63946; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Print */
+        @media print {
+            .sidebar, .hamburger-fixed, .header-actions, .actions-row,
+            .mode-selector, .controls-row, .params-panel, .slot-delete,
+            .toast-container { display: none !important; }
+            .contenido { margin: 0 !important; padding: 10px !important; }
+            .schedule-table th { background: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="contenedor">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <aside class="sidebar" id="mainSidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-copy">
+                    <h2 title="Portal de Alumnos CBTA 15">Portal de Alumnos</h2>
+                    <p>CBTA 15 - Administrador</p>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-menu menu" aria-label="Menu principal">
+            <a href="reportes.html"><i class="fa-solid fa-table-columns"></i><span>Inicio / Reportes</span></a>
+            <a href="alumnos.html"><i class="fa-solid fa-user-graduate"></i><span>Alumnos</span></a>
+            <a href="grupos.html"><i class="fa-solid fa-users"></i><span>Grupos</span></a>
+            <a href="materias.html"><i class="fa-solid fa-book"></i><span>Materias</span></a>
+            <a href="calificaciones.html"><i class="fa-solid fa-clipboard-check"></i><span>Calificaciones</span></a>
+            <a href="asistencias.html"><i class="fa-solid fa-calendar-check"></i><span>Asistencias</span></a>
+            <a href="horarios.html" class="activo"><i class="fa-solid fa-clock"></i><span>Horarios</span></a>
+            <a href="maestros.html"><i class="fa-solid fa-chalkboard-user"></i><span>Maestros</span></a>
+            <a href="riesgo.html"><i class="fa-solid fa-triangle-exclamation"></i><span>Riesgo academico</span></a>
+        </nav>
+        <div class="sidebar-footer logout">
+            <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                <i class="fa-solid fa-palette"></i><span data-theme-label>Cambiar tema</span>
+            </a>
+            <a href="#" onclick="logout(); return false;" style="display:flex;align-items:center;gap:14px;">
+                <i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="contenido">
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Header -->
+        <div class="horarios-header">
+            <div class="header-left">
+                <h1><i class="fa-solid fa-clock"></i> Generador de Horarios</h1>
+                <p>Administra y genera los horarios de la escuela</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="descargarPDF()" id="btnPDF">
+                    <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+                </button>
+                <button class="btn btn-secondary" onclick="imprimirHorario()" id="btnImprimir">
+                    <i class="fa-solid fa-print"></i> Imprimir horario
+                </button>
+            </div>
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="mode-selector">
+            <label>Modo de asignacion:</label>
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="modo" value="docente" checked onchange="cambiarModo('docente')">
+                    Por Docente
+                </label>
+                <label>
+                    <input type="radio" name="modo" value="grupo" onchange="cambiarModo('grupo')">
+                    Por Grado y Grupo
+                </label>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-row" id="controlsRow">
+            <div class="control-group" id="grpDocente">
+                <label for="selectDocente">Docente</label>
+                <select id="selectDocente" onchange="onDocenteChange()">
+                    <option value="">-- Seleccionar docente --</option>
+                </select>
+            </div>
+            <div class="control-group" id="grpGrado" style="display:none;">
+                <label for="selectGrado">Grado</label>
+                <select id="selectGrado" onchange="onGradoChange()">
+                    <option value="">-- Seleccionar grado --</option>
+                </select>
+            </div>
+            <div class="control-group" id="grpGrupo" style="display:none;">
+                <label for="selectGrupo">Grupo</label>
+                <select id="selectGrupo" onchange="onGrupoChange()">
+                    <option value="">-- Seleccionar grupo --</option>
+                </select>
+            </div>
+            <div class="control-group" id="grpMateria">
+                <label for="selectMateria">Materia</label>
+                <select id="selectMateria" onchange="onMateriaChange()">
+                    <option value="">-- Seleccionar materia --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-value" id="cardDocentes">0</div>
+                <div class="card-label">Docentes</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value" id="cardGrupos">0</div>
+                <div class="card-label">Grupos</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value" id="cardMaterias">0</div>
+                <div class="card-label">Materias</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value" id="cardHorasAsignadas">0</div>
+                <div class="card-label">Horas asignadas</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-value" id="cardSinAsignar">0</div>
+                <div class="card-label">Sin asignar</div>
+            </div>
+        </div>
+
+        <!-- Parameters -->
+        <div class="params-panel">
+            <h3><i class="fa-solid fa-sliders"></i> Parametros del horario</h3>
+            <div class="params-grid">
+                <div class="control-group">
+                    <label for="horasMaxDia">Horas max / dia</label>
+                    <input type="number" id="horasMaxDia" value="6" min="1" max="10">
+                </div>
+                <div class="control-group">
+                    <label for="horasMaxSem">Horas max / semana</label>
+                    <input type="number" id="horasMaxSem" value="30" min="1" max="50">
+                </div>
+                <div class="control-group">
+                    <label>Dias habilitados</label>
+                    <div class="day-checkboxes">
+                        <label><input type="checkbox" class="day-check" value="1" checked> Lun</label>
+                        <label><input type="checkbox" class="day-check" value="2" checked> Mar</label>
+                        <label><input type="checkbox" class="day-check" value="3" checked> Mie</label>
+                        <label><input type="checkbox" class="day-check" value="4" checked> Jue</label>
+                        <label><input type="checkbox" class="day-check" value="5" checked> Vie</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-row">
+            <button class="btn btn-success" onclick="generarHorario()" id="btnGenerar">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generar horario automaticamente
+            </button>
+            <button class="btn btn-danger" onclick="confirmarLimpiar()" id="btnLimpiar">
+                <i class="fa-solid fa-broom"></i> Limpiar todos los horarios
+            </button>
+        </div>
+
+        <!-- Schedule Grid -->
+        <div class="schedule-grid-wrapper">
+            <table class="schedule-table" id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miercoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- Modal Info -->
+<div class="modal-overlay" id="modalInfo">
+    <div class="modal-box">
+        <h3><i class="fa-solid fa-circle-info"></i> Informacion</h3>
+        <p id="modalInfoText"></p>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="closeModal('modalInfo')">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirm -->
+<div class="modal-overlay" id="modalConfirm">
+    <div class="modal-box">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Confirmar accion</h3>
+        <p id="modalConfirmText"></p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('modalConfirm')">Cancelar</button>
+            <button class="btn btn-danger" id="btnConfirmAction">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/app.js">
+    <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script></script>
+<script>
+    /* ==========================================================
+       HORARIOS - Generador de Horarios
+       Static version - routes replaced with placeholders
+       ========================================================== */
+
+    const API_CATALOGOS = '#API_CATALOGOS';
+    const API_GENERAR   = '#API_GENERAR';
+    const API_ELIMINAR  = '#API_ELIMINAR';
+    const API_CARGAR    = '#API_CARGAR';
+    const API_LIMPIAR   = '#API_LIMPIAR';
+    const API_PDF       = '#API_PDF';
+
+    let catalogos = {
+        docentes: [],
+        grupos: [],
+        materias: []
+    };
+    let horarios = {};
+    let modoActual = 'docente';
+    let selectedDocente = null;
+    let selectedGrado = null;
+    let selectedGrupo = null;
+    let selectedMateria = null;
+
+    const horasBase = [
+        '07:00 - 07:50',
+        '07:50 - 08:40',
+        '08:40 - 09:30',
+        '09:30 - 10:20',
+        '10:20 - 11:10',
+        '11:10 - 12:00',
+        '12:00 - 12:50',
+        '12:50 - 13:40',
+        '13:40 - 14:30',
+        '14:30 - 15:20'
+    ];
+    const diasSemana = [1, 2, 3, 4, 5];
+    const diasNombres = { 1: 'Lunes', 2: 'Martes', 3: 'Miercoles', 4: 'Jueves', 5: 'Viernes' };
+
+    /* ---- Init ---- */
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarCatalogos();
+        renderGrid();
+    });
+
+    /* ---- Toast ---- */
+    function showToast(msg, type) {
+        type = type || 'info';
+        var c = document.getElementById('toastContainer');
+        var t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(function() { t.remove(); }, 3500);
+    }
+
+    /* ---- Modals ---- */
+    function showModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+    function showInfo(msg) {
+        document.getElementById('modalInfoText').textContent = msg;
+        showModal('modalInfo');
+    }
+    function showConfirm(msg, onConfirm) {
+        document.getElementById('modalConfirmText').textContent = msg;
+        showModal('modalConfirm');
+        var btn = document.getElementById('btnConfirmAction');
+        var newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        newBtn.addEventListener('click', function() {
+            closeModal('modalConfirm');
+            onConfirm();
+        });
+    }
+
+    /* ---- Catalogos ---- */
+    function cargarCatalogos() {
+        fetch(API_CATALOGOS)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                catalogos.docentes = data.docentes || [];
+                catalogos.grupos = data.grupos || [];
+                catalogos.materias = data.materias || [];
+                populateSelects();
+                cargarHorarios();
+            })
+            .catch(function(err) {
+                console.error('Error al cargar catalogos:', err);
+                showToast('Error al cargar catalogos', 'error');
+            });
+    }
+
+    function populateSelects() {
+        var selDoc = document.getElementById('selectDocente');
+        var selGrado = document.getElementById('selectGrado');
+        var selGrupo = document.getElementById('selectGrupo');
+        var selMat = document.getElementById('selectMateria');
+
+        selDoc.innerHTML = '<option value="">-- Seleccionar docente --</option>';
+        catalogos.docentes.forEach(function(d) {
+            var o = document.createElement('option');
+            o.value = d.id;
+            o.textContent = d.nombre + (d.apellido ? ' ' + d.apellido : '');
+            selDoc.appendChild(o);
+        });
+
+        selGrado.innerHTML = '<option value="">-- Seleccionar grado --</option>';
+        var gradosUnicos = [];
+        catalogos.grupos.forEach(function(g) {
+            if (gradosUnicos.indexOf(g.grado) === -1) {
+                gradosUnicos.push(g.grado);
+            }
+        });
+        gradosUnicos.sort();
+        gradosUnicos.forEach(function(gr) {
+            var o = document.createElement('option');
+            o.value = gr;
+            o.textContent = gr + 'o';
+            selGrado.appendChild(o);
+        });
+
+        selMat.innerHTML = '<option value="">-- Seleccionar materia --</option>';
+        catalogos.materias.forEach(function(m) {
+            var o = document.createElement('option');
+            o.value = m.id;
+            o.textContent = m.nombre;
+            selMat.appendChild(o);
+        });
+
+        updateSummary();
+    }
+
+    /* ---- Horarios ---- */
+    function cargarHorarios() {
+        fetch(API_CARGAR)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                horarios = data.horarios || {};
+                renderGrid();
+                updateSummary();
+            })
+            .catch(function(err) {
+                console.error('Error al cargar horarios:', err);
+                showToast('Error al cargar horarios', 'error');
+            });
+    }
+
+    /* ---- Mode ---- */
+    function cambiarModo(modo) {
+        modoActual = modo;
+        var grpDoc = document.getElementById('grpDocente');
+        var grpGrado = document.getElementById('grpGrado');
+        var grpGrupo = document.getElementById('grpGrupo');
+
+        if (modo === 'docente') {
+            grpDoc.style.display = '';
+            grpGrado.style.display = 'none';
+            grpGrupo.style.display = 'none';
+        } else {
+            grpDoc.style.display = 'none';
+            grpGrado.style.display = '';
+            grpGrupo.style.display = '';
+        }
+
+        selectedDocente = null;
+        selectedGrado = null;
+        selectedGrupo = null;
+        document.getElementById('selectDocente').value = '';
+        document.getElementById('selectGrado').value = '';
+        document.getElementById('selectGrupo').value = '';
+        document.getElementById('selectMateria').value = '';
+        selectedMateria = null;
+    }
+
+    /* ---- Select handlers ---- */
+    function onDocenteChange() {
+        selectedDocente = document.getElementById('selectDocente').value || null;
+        document.getElementById('selectMateria').value = '';
+        selectedMateria = null;
+    }
+
+    function onGradoChange() {
+        selectedGrado = document.getElementById('selectGrado').value || null;
+        selectedGrupo = null;
+        document.getElementById('selectGrupo').innerHTML = '<option value="">-- Seleccionar grupo --</option>';
+        if (selectedGrado) {
+            catalogos.grupos.forEach(function(g) {
+                if (String(g.grado) === String(selectedGrado)) {
+                    var o = document.createElement('option');
+                    o.value = g.id;
+                    o.textContent = g.nombre || g.grupo;
+                    document.getElementById('selectGrupo').appendChild(o);
+                }
+            });
+        }
+        document.getElementById('selectMateria').value = '';
+        selectedMateria = null;
+    }
+
+    function onGrupoChange() {
+        selectedGrupo = document.getElementById('selectGrupo').value || null;
+        document.getElementById('selectMateria').value = '';
+        selectedMateria = null;
+    }
+
+    function onMateriaChange() {
+        selectedMateria = document.getElementById('selectMateria').value || null;
+    }
+
+    /* ---- Summary ---- */
+    function updateSummary() {
+        document.getElementById('cardDocentes').textContent = catalogos.docentes.length;
+        document.getElementById('cardGrupos').textContent = catalogos.grupos.length;
+        document.getElementById('cardMaterias').textContent = catalogos.materias.length;
+
+        var asignadas = 0;
+        var totalSlots = 0;
+        var diasHabilitados = getDiasHabilitados();
+        var horasMaxDia = parseInt(document.getElementById('horasMaxDia').value) || 6;
+
+        diasHabilitados.forEach(function(dia) {
+            for (var h = 0; h < horasMaxDia && h < horasBase.length; h++) {
+                totalSlots++;
+                var key = dia + '_' + h;
+                if (horarios[key]) {
+                    asignadas++;
+                }
+            }
+        });
+
+        document.getElementById('cardHorasAsignadas').textContent = asignadas;
+        document.getElementById('cardSinAsignar').textContent = Math.max(0, totalSlots - asignadas);
+    }
+
+    /* ---- Helpers ---- */
+    function getDiasHabilitados() {
+        var dias = [];
+        document.querySelectorAll('.day-check').forEach(function(cb) {
+            if (cb.checked) dias.push(parseInt(cb.value));
+        });
+        return dias;
+    }
+
+    function findDocente(id) {
+        return catalogos.docentes.find(function(d) { return String(d.id) === String(id); });
+    }
+    function findMateria(id) {
+        return catalogos.materias.find(function(m) { return String(m.id) === String(id); });
+    }
+    function findGrupo(id) {
+        return catalogos.grupos.find(function(g) { return String(g.id) === String(id); });
+    }
+
+    /* ---- Render grid ---- */
+    function renderGrid() {
+        var tbody = document.getElementById('scheduleBody');
+        tbody.innerHTML = '';
+        var horasMaxDia = parseInt(document.getElementById('horasMaxDia').value) || 6;
+        var numHoras = Math.min(horasMaxDia, horasBase.length);
+
+        for (var h = 0; h < numHoras; h++) {
+            var tr = document.createElement('tr');
+
+            var tdHora = document.createElement('td');
+            tdHora.className = 'hora-cell';
+            tdHora.textContent = horasBase[h];
+            tr.appendChild(tdHora);
+
+            diasSemana.forEach(function(dia) {
+                var td = document.createElement('td');
+                var key = dia + '_' + h;
+
+                if (horarios[key]) {
+                    var s = horarios[key];
+                    var div = document.createElement('div');
+                    div.className = 'slot filled';
+
+                    var mat = findMateria(s.materia_id);
+                    var doc = findDocente(s.docente_id);
+                    var grp = findGrupo(s.grupo_id);
+
+                    var mDiv = document.createElement('div');
+                    mDiv.className = 'slot-materia';
+                    mDiv.textContent = mat ? mat.nombre : 'Materia #' + s.materia_id;
+                    div.appendChild(mDiv);
+
+                    if (doc) {
+                        var dDiv = document.createElement('div');
+                        dDiv.className = 'slot-docente';
+                        dDiv.textContent = doc.nombre + (doc.apellido ? ' ' + doc.apellido : '');
+                        div.appendChild(dDiv);
+                    }
+
+                    if (grp) {
+                        var gDiv = document.createElement('div');
+                        gDiv.className = 'slot-grupo';
+                        gDiv.textContent = (grp.grado ? grp.grado + 'o ' : '') + (grp.nombre || grp.grupo || '');
+                        div.appendChild(gDiv);
+                    }
+
+                    var btnDel = document.createElement('button');
+                    btnDel.className = 'slot-delete';
+                    btnDel.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                    btnDel.title = 'Eliminar esta asignacion';
+                    btnDel.onclick = (function(key) {
+                        return function(e) {
+                            e.stopPropagation();
+                            eliminarSlot(key);
+                        };
+                    })(key);
+                    div.appendChild(btnDel);
+
+                    td.appendChild(div);
+                } else {
+                    var empty = document.createElement('div');
+                    empty.className = 'slot';
+                    empty.onclick = (function(dia, h) {
+                        return function() { asignarSlot(dia, h); };
+                    })(dia, h);
+
+                    var txt = document.createElement('span');
+                    txt.className = 'slot-empty-text';
+                    txt.textContent = '+ Asignar';
+                    empty.appendChild(txt);
+                    td.appendChild(empty);
+                }
+
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        }
+    }
+
+    /* ---- Asignar slot ---- */
+    function asignarSlot(dia, hora) {
+        if (!selectedMateria) {
+            showInfo('Selecciona una materia primero.');
+            return;
+        }
+
+        var key = dia + '_' + hora;
+
+        if (horarios[key]) {
+            showInfo('Este horario ya esta ocupado.');
+            return;
+        }
+
+        var payload = {
+            dia: dia,
+            hora: hora,
+            materia_id: selectedMateria,
+            docente_id: selectedDocente,
+            grupo_id: modoActual === 'grupo' ? selectedGrupo : null
+        };
+
+        fetch(API_GENERAR, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': ''
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                horarios[key] = {
+                    materia_id: selectedMateria,
+                    docente_id: selectedDocente,
+                    grupo_id: payload.grupo_id
+                };
+                renderGrid();
+                updateSummary();
+                showToast('Asignacion exitosa', 'success');
+            } else {
+                showToast(data.message || 'Error al asignar', 'error');
+            }
+        })
+        .catch(function(err) {
+            console.error('Error:', err);
+            showToast('Error de conexion', 'error');
+        });
+    }
+
+    /* ---- Eliminar slot ---- */
+    function eliminarSlot(key) {
+        var parts = key.split('_');
+        var dia = parseInt(parts[0]);
+        var hora = parseInt(parts[1]);
+
+        fetch(API_ELIMINAR, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': ''
+            },
+            body: JSON.stringify({ dia: dia, hora: hora })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                delete horarios[key];
+                renderGrid();
+                updateSummary();
+                showToast('Slot eliminado', 'success');
+            } else {
+                showToast(data.message || 'Error al eliminar', 'error');
+            }
+        })
+        .catch(function(err) {
+            console.error('Error:', err);
+            showToast('Error de conexion', 'error');
+        });
+    }
+
+    /* ---- Generar automaticamente ---- */
+    function generarHorario() {
+        var horasMaxDia = parseInt(document.getElementById('horasMaxDia').value) || 6;
+        var horasMaxSem = parseInt(document.getElementById('horasMaxSem').value) || 30;
+        var dias = getDiasHabilitados();
+
+        if (dias.length === 0) {
+            showInfo('Selecciona al menos un dia de la semana.');
+            return;
+        }
+
+        var payload = {
+            horas_max_dia: horasMaxDia,
+            horas_max_semana: horasMaxSem,
+            dias: dias
+        };
+
+        var btn = document.getElementById('btnGenerar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Generando...';
+
+        fetch(API_GENERAR, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': ''
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar horario automaticamente';
+
+            if (data.success) {
+                showToast('Horario generado exitosamente', 'success');
+                cargarHorarios();
+            } else {
+                showToast(data.message || 'Error al generar', 'error');
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar horario automaticamente';
+            console.error('Error:', err);
+            showToast('Error de conexion', 'error');
+        });
+    }
+
+    /* ---- Limpiar ---- */
+    function confirmarLimpiar() {
+        showConfirm('Esto eliminar todos los horarios asignados. Continuar?', function() {
+            limpiarHorarios();
+        });
+    }
+
+    function limpiarHorarios() {
+        var btn = document.getElementById('btnLimpiar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Limpiando...';
+
+        fetch(API_LIMPIAR, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': ''
+            },
+            body: JSON.stringify({})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-broom"></i> Limpiar todos los horarios';
+
+            if (data.success) {
+                horarios = {};
+                renderGrid();
+                updateSummary();
+                showToast('Horarios limpiados', 'success');
+            } else {
+                showToast(data.message || 'Error al limpiar', 'error');
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-broom"></i> Limpiar todos los horarios';
+            console.error('Error:', err);
+            showToast('Error de conexion', 'error');
+        });
+    }
+
+    /* ---- PDF ---- */
+    function descargarPDF() {
+        window.open(API_PDF, '_blank');
+    }
+
+    /* ---- Imprimir ---- */
+    function imprimirHorario() {
+        window.print();
+    }
+
+    /* ---- Listen for param changes ---- */
+    document.getElementById('horasMaxDia').addEventListener('change', function() {
+        renderGrid();
+        updateSummary();
+    });
+
+    document.querySelectorAll('.day-check').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            renderGrid();
+            updateSummary();
+        });
+    });
+</script>
+</body>
+</html>

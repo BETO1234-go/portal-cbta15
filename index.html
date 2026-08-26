@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBTA 15 - Portal de Alumnos</title>
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('inventario-theme');
+            if (savedTheme === 'dark' || savedTheme === 'light') {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main class="landing">
+        <div class="landing-bg">
+            <span class="landing-blob blob-1"></span>
+            <span class="landing-blob blob-2"></span>
+            <span class="landing-blob blob-3"></span>
+        </div>
+        <div class="landing-content">
+            <div class="landing-header">
+                <span class="landing-badge">CBTA 15</span>
+                <h1>Portal de Alumnos</h1>
+                <p class="landing-subtitle">Centro de Bachillerato Tecnologico Agropecuario No. 15</p>
+            </div>
+            <div class="landing-cards">
+                <a href="login/alumno.html" class="landing-card">
+                    <div class="landing-card-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/>
+                        </svg>
+                    </div>
+                    <h2>Alumno</h2>
+                    <p>Ingresa con tu matricula para consultar calificaciones, asistencias y mas.</p>
+                    <span class="landing-card-btn">Entrar como alumno</span>
+                </a>
+                <a href="login/personal.html" class="landing-card">
+                    <div class="landing-card-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <polyline points="17 11 19 13 23 9"/>
+                        </svg>
+                    </div>
+                    <h2>Personal</h2>
+                    <p>Administradores, ingresen con su correo institucional.</p>
+                    <span class="landing-card-btn">Entrar como personal</span>
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

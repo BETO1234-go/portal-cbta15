@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grupos - Portal CBTA 15</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .students-table th, .students-table td { padding: 0.4rem 1rem; }
+        .students-table .btn-sm { padding: 0.4rem; font-size: 0.78rem; }
+    </style>
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="contenedor">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <aside class="sidebar" id="mainSidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-copy">
+                    <h2 title="Portal de Alumnos CBTA 15">Portal de Alumnos</h2>
+                    <p>CBTA 15 - Administrador</p>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-menu menu" aria-label="Menu principal">
+            <a href="reportes.html"><i class="fa-solid fa-table-columns"></i><span>Inicio / Reportes</span></a>
+            <a href="alumnos.html"><i class="fa-solid fa-user-graduate"></i><span>Alumnos</span></a>
+            <a href="grupos.html" class="activo"><i class="fa-solid fa-users"></i><span>Grupos</span></a>
+            <a href="materias.html"><i class="fa-solid fa-book"></i><span>Materias</span></a>
+            <a href="calificaciones.html"><i class="fa-solid fa-clipboard-check"></i><span>Calificaciones</span></a>
+            <a href="asistencias.html"><i class="fa-solid fa-calendar-check"></i><span>Asistencias</span></a>
+            <a href="horarios.html"><i class="fa-solid fa-clock"></i><span>Horarios</span></a>
+            <a href="maestros.html"><i class="fa-solid fa-chalkboard-user"></i><span>Maestros</span></a>
+            <a href="riesgo.html"><i class="fa-solid fa-triangle-exclamation"></i><span>Riesgo academico</span></a>
+        </nav>
+        <div class="sidebar-footer logout">
+            <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                <i class="fa-solid fa-palette"></i><span data-theme-label>Cambiar tema</span>
+            </a>
+            <a href="#" onclick="logout(); return false;" style="display:flex;align-items:center;gap:14px;">
+                <i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesion</span>
+            </a>
+        </div>
+    </aside>
+    <main class="contenido">
+        <div class="page-header">
+            <div>
+                <h1>Grupos</h1>
+                <p class="subtitle">Administracion de grupos</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openModal('modalGrupo')">
+                    <i class="fa-solid fa-plus"></i> Nuevo grupo
+                </button>
+                <button class="btn btn-secondary" onclick="openModal('modalImportarGrupos')">
+                    <i class="fa-solid fa-file-excel"></i> Importar Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="buscador" placeholder="Buscar grupo..." data-target="tabla_grupos">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <table class="students-table" id="tabla_grupos">
+            <thead>
+                <tr>
+                    <th>Grado</th>
+                    <th>Grupo</th>
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Datos cargados desde Supabase -->
+            </tbody>
+        </table>
+    </main>
+</div>
+
+<!-- Modal Eliminar Grupo -->
+<div class="modal-overlay" id="modalEliminarGrupo">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Eliminar grupo</h2>
+            <button class="btn-close" onclick="closeModal('modalEliminarGrupo')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>¿Estas seguro de que deseas eliminar este grupo? Esta accion no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalEliminarGrupo')">Cancelar</button>
+            <button class="btn btn-danger" id="btnConfirmarEliminarGrupo">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Grupo -->
+<div class="modal-overlay" id="modalGrupo">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Nuevo grupo</h2>
+            <button class="btn-close" onclick="closeModal('modalGrupo')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="formGrupo">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="grado_id">Grado</label>
+                    <select id="grado_id" name="grado_id" class="form-control" required>
+                        <option value="">Seleccionar grado</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalGrupo')">Cancelar</button>
+            <button class="btn btn-primary" id="btnGuardarGrupo">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importar Grupos -->
+<div class="modal-overlay" id="modalImportarGrupos">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Importar Grupos</h2>
+            <button class="btn-close" onclick="closeModal('modalImportarGrupos')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="formImportarGrupos">
+                <div class="form-group">
+                    <label for="archivoGrupos">Seleccionar archivo Excel (.xlsx)</label>
+                    <input type="file" id="archivoGrupos" name="archivoGrupos" accept=".xlsx,.xls" class="form-control">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('modalImportarGrupos')">Cancelar</button>
+            <button class="btn btn-primary" id="btnImportarGrupos">Importar</button>
+        </div>
+    </div>
+</div>
+
+    <div class="component-modal" id="confirmModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="confirmModalTitle">Confirmar</h2>
+                <button class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-agregar" id="confirmModalBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="component-modal" id="alertModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="alertModalTitle">Aviso</h2>
+                <button class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn-agregar" onclick="closeAlertModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+<script src="../js/app.js"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
+<script src="../js/data.js"></script>
+<script>
+    var grupoIdAEliminar = null;
+
+    function setEliminarGrupo(id) {
+        grupoIdAEliminar = id;
+        openModal('modalEliminarGrupo');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.btn-eliminar-grupo').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                setEliminarGrupo(this.getAttribute('data-id'));
+            });
+        });
+
+        document.getElementById('btnConfirmarEliminarGrupo').addEventListener('click', async function() {
+            if (grupoIdAEliminar) {
+                await DB.deleteGrupo(grupoIdAEliminar);
+                closeModal('modalEliminarGrupo');
+                populateGrupos();
+            }
+        });
+    });
+</script>
+</body>
+</html>

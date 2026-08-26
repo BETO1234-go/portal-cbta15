@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Inscripcion | CBTA 15</title>
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('inventario-theme');
+            if (savedTheme === 'dark' || savedTheme === 'light') {
+                document.documentElement.dataset.theme = savedTheme;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <main class="page">
+        <section class="card admin-card" style="max-width:700px;margin:0 auto;">
+            <div class="page-toolbar">
+                <div>
+                    <h1>Solicitud de Inscripcion</h1>
+                    <p class="subtitle">Complete el formulario para solicitar su inscripcion en el CBTA 15.</p>
+                </div>
+            </div>
+
+            <div id="successMessage" class="alert" style="display:none;margin-bottom:1.5rem;">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Su solicitud de inscripcion ha sido enviada correctamente. Recibira un correo de confirmacion en breve.</span>
+            </div>
+
+            <form id="solicitudForm" class="form import-form">
+                <div class="form-row">
+                    <div class="form-group" style="flex:1 1 100%;">
+                        <label for="nombre_completo">Nombre completo *</label>
+                        <input type="text" id="nombre_completo" name="nombre_completo" class="form-control" required autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="correo">Correo electronico</label>
+                        <input type="email" id="correo" name="correo" class="form-control" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Telefono</label>
+                        <input type="text" id="telefono" name="telefono" class="form-control" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1 1 100%;">
+                        <label for="direccion">Direccion</label>
+                        <input type="text" id="direccion" name="direccion" class="form-control" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ciclo_escolar">Ciclo escolar</label>
+                        <input type="text" id="ciclo_escolar" name="ciclo_escolar" class="form-control" value="2026-2027">
+                    </div>
+                    <div class="form-group">
+                        <label for="turno_preferente">Turno preferente</label>
+                        <select id="turno_preferente" name="turno_preferente" class="form-control">
+                            <option value="Matutino">Matutino</option>
+                            <option value="Vespertino">Vespertino</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="actions-row">
+                    <a class="text-link" href="../index.html"><i class="fa-solid fa-arrow-left"></i> Volver</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Enviar solicitud</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('solicitudForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var nombre = document.getElementById('nombre_completo').value.trim();
+            if (!nombre) return;
+            this.style.display = 'none';
+            var msg = document.getElementById('successMessage');
+            msg.style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+    <script src="../js/supabase.js"></script>
+</body>
+</html>
