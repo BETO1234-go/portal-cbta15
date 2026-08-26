@@ -157,13 +157,13 @@ INSERT INTO inv_historial (id_bien, id_area_nueva, id_personal_nuevo, tipo_movim
 (1, 7, 6, 'Asignacion', 'Asignacion inicial de equipo de computo'),
 (2, 7, 6, 'Asignacion', 'Asignacion de equipo de computo para laboratorio'),
 (3, 2, 2, 'Asignacion', 'Laptop para subdireccion academica'),
-(5, 1, 1, 'Asignacion', 'Proyector paraDireccion'),
+(5, 1, 1, 'Asignacion', 'Proyector para Direccion'),
 (6, 3, 3, 'Asignacion', 'Telefono IP para subadministrativa'),
 (8, 1, 1, 'Asignacion', 'Escritorio para direccion'),
 (9, 1, 1, 'Asignacion', 'Silla para direccion'),
 (10, 4, 4, 'Asignacion', 'Laptop para taller de agropecuaria'),
 (10, 4, 4, 'Transferencia', 'Transferido a taller por cambio de area'),
-(12, 10, 10, 'Asignacion', 'Impresora para control escolar');
+(12, 10, 8, 'Asignacion', 'Impresora para control escolar');
 
 INSERT INTO inv_parametros (clave, valor) VALUES
 ('inventario_prefijo', 'INV-'),
