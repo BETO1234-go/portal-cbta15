@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal - Inventario Escolar</title>
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-hover: #1557b0;
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --sidebar-bg: #ffffff;
+            --sidebar-width: 260px;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --info: #0ea5e9;
+        }
+
+        body.dark {
+            --primary: #4dabf7;
+            --primary-hover: #339af0;
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --text: #e4e6eb;
+            --text-muted: #adb5bd;
+            --border: #2d3748;
+            --sidebar-bg: #0f1629;
+            --danger: #fc5c65;
+            --success: #26de81;
+            --warning: #fed330;
+            --info: #4bcffa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.15rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header h2 i { font-size: 1.3rem; }
+
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 0;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(26, 115, 232, 0.08);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        body.dark .sidebar-nav a.active {
+            background: rgba(77, 171, 247, 0.1);
+        }
+
+        .sidebar-nav a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-footer .user-info {
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-footer .user-info i { color: var(--primary); }
+
+        .sidebar-footer .footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-footer button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-footer button:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .sidebar-footer .btn-logout:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+            color: var(--text);
+        }
+
+        .page-header h1 i {
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: var(--bg); }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-danger {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 220px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .search-box input:focus { border-color: var(--primary); }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .table-container { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        table th, table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+
+        table th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+        }
+
+        table tr:hover td { background: rgba(26, 115, 232, 0.03); }
+        body.dark table tr:hover td { background: rgba(77, 171, 247, 0.05); }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .badge-success { background: rgba(22,163,74,0.12); color: #16a34a; }
+        .badge-danger { background: rgba(220,38,38,0.12); color: #dc2626; }
+        .badge-info { background: rgba(14,165,233,0.12); color: #0ea5e9; }
+
+        .action-btns { display: flex; gap: 6px; }
+
+        .action-btns button {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .action-btns button:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .action-btns button.btn-del:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover { background: var(--bg); }
+
+        .pagination button.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.4;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px;
+            position: relative;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .modal h2 {
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal h2 i { color: var(--primary); }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover { color: var(--danger); }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group.full { grid-column: 1 / -1; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .form-group label .req { color: var(--danger); }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus { border-color: var(--primary); }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 20px; }
+            .form-row { grid-template-columns: 1fr; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-boxes-stacked"></i> Inventario</h2>
+            <p>CBTA 15</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a href="bienes.html"><i class="fas fa-box-open"></i> Bienes</a>
+            <a href="personal.html" class="active"><i class="fas fa-users"></i> Personal</a>
+            <a href="areas.html"><i class="fas fa-building"></i> Areas</a>
+            <a href="asignaciones.html"><i class="fas fa-link"></i> Asignaciones</a>
+            <a href="historial.html"><i class="fas fa-clock-rotate-left"></i> Historial</a>
+            <a href="reportes.html"><i class="fas fa-file-lines"></i> Reportes</a>
+            <a href="pendientes.html"><i class="fas fa-hourglass-half"></i> Pendientes</a>
+            <a href="usuarios.html"><i class="fas fa-user-shield"></i> Usuarios</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Cargando...</span>
+            </div>
+            <div class="footer-actions">
+                <button onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesion">
+                    <i class="fas fa-right-from-bracket"></i> Salir
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-users"></i> Personal</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary admin-only" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Nuevo Personal
+                </button>
+            </div>
+        </div>
+
+        <div class="filters-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar por nombre, puesto, correo..." oninput="debounceSearch()">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre completo</th>
+                            <th>Puesto</th>
+                            <th>Area</th>
+                            <th>Correo</th>
+                            <th>Telefono</th>
+                            <th>Estatus</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="personalTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-users"></i>
+                                Cargando personal...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination" id="paginationControls"></div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="personalModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2 id="modalTitle"><i class="fas fa-plus-circle"></i> Nuevo Personal</h2>
+            <form id="personalForm" onsubmit="handlePersonalSubmit(event)">
+                <input type="hidden" id="personalId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre(s) <span class="req">*</span></label>
+                        <input type="text" id="nombre" required placeholder="Nombre">
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido Paterno <span class="req">*</span></label>
+                        <input type="text" id="apellidoPaterno" required placeholder="Apellido paterno">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Apellido Materno</label>
+                        <input type="text" id="apellidoMaterno" placeholder="Apellido materno">
+                    </div>
+                    <div class="form-group">
+                        <label>Puesto</label>
+                        <input type="text" id="puesto" placeholder="Ej. Docente, Administrativo">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Correo</label>
+                        <input type="email" id="correo" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefono</label>
+                        <input type="text" id="telefono" placeholder="Telefono">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Area</label>
+                        <select id="idArea">
+                            <option value="">-- Seleccionar area --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estatus</label>
+                        <select id="estatus">
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSavePersonal">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        let currentPage = 1;
+        const perPage = 15;
+        let allPersonal = [];
+        let searchTimeout = null;
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('inv_theme', 'light');
+            } else {
+                body.classList.add('dark');
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('inv_theme', 'dark');
+            }
+        }
+
+        (function () {
+            const saved = localStorage.getItem('inv_theme');
+            if (saved === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fas fa-sun';
+            }
+        })();
+
+        function handleLogout() {
+            if (typeof invLogout === 'function') invLogout();
+            window.location.href = '../login.html';
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                loadPersonal();
+            }, 300);
+        }
+
+        async function loadPersonal() {
+            try {
+                if (typeof requireInvAuth === 'function') await requireInvAuth();
+
+                const user = typeof getInvUser === 'function' ? getInvUser() : null;
+                const nameEl = document.getElementById('userName');
+                if (user && nameEl) nameEl.textContent = user.email || user.name || 'Usuario';
+
+                const search = document.getElementById('searchInput').value.trim().toLowerCase();
+                let result = { data: [], total: 0 };
+
+                if (typeof InvDB !== 'undefined' && InvDB.getPersonal) {
+                    result = await InvDB.getPersonal(currentPage, perPage, search || undefined);
+                }
+
+                allPersonal = result.data || [];
+                renderPersonal();
+            } catch (err) {
+                console.error('Error loading personal:', err);
+                document.getElementById('personalTableBody').innerHTML =
+                    '<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error al cargar personal</td></tr>';
+            }
+        }
+
+        function renderPersonal() {
+            const tbody = document.getElementById('personalTableBody');
+
+            if (allPersonal.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i> No se encontraron registros</td></tr>';
+            } else {
+                tbody.innerHTML = allPersonal.map(p => {
+                    const nombreCompleto = [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ');
+                    const areaNombre = p.inv_areas ? p.inv_areas.nombre_area : (p.id_area || '-');
+                    const estatus = p.estatus || 'Activo';
+                    const badgeClass = estatus === 'Activo' ? 'badge-success' : 'badge-danger';
+                    return `
+                        <tr>
+                            <td><strong>${nombreCompleto || 'N/A'}</strong></td>
+                            <td>${p.puesto || '-'}</td>
+                            <td>${areaNombre}</td>
+                            <td>${p.correo || '-'}</td>
+                            <td>${p.telefono || '-'}</td>
+                            <td><span class="badge ${badgeClass}">${estatus}</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button title="Editar" onclick="editPersonal('${p.id}')"><i class="fas fa-pen"></i></button>
+                                    <button class="btn-del" title="Eliminar" onclick="deletePersonal('${p.id}')"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('paginationControls').innerHTML = '';
+        }
+
+        async function loadAreas() {
+            try {
+                if (typeof InvDB !== 'undefined' && InvDB.getAreas) {
+                    const result = await InvDB.getAreas();
+                    const areas = result.data || result;
+                    const select = document.getElementById('idArea');
+                    areas.forEach(a => {
+                        const opt = document.createElement('option');
+                        opt.value = a.id;
+                        opt.textContent = a.nombre_area || a.nombre || a.id;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading areas:', err);
+            }
+        }
+
+        function openModal(personal) {
+            const modal = document.getElementById('personalModal');
+            const form = document.getElementById('personalForm');
+            const title = document.getElementById('modalTitle');
+            form.reset();
+            document.getElementById('personalId').value = '';
+
+            if (personal) {
+                title.innerHTML = '<i class="fas fa-edit"></i> Editar Personal';
+                document.getElementById('personalId').value = personal.id || '';
+                document.getElementById('nombre').value = personal.nombre || '';
+                document.getElementById('apellidoPaterno').value = personal.apellido_paterno || '';
+                document.getElementById('apellidoMaterno').value = personal.apellido_materno || '';
+                document.getElementById('puesto').value = personal.puesto || '';
+                document.getElementById('correo').value = personal.correo || '';
+                document.getElementById('telefono').value = personal.telefono || '';
+                document.getElementById('idArea').value = personal.id_area || '';
+                document.getElementById('estatus').value = personal.estatus || 'Activo';
+            } else {
+                title.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Personal';
+            }
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('personalModal').classList.remove('show');
+        }
+
+        async function handlePersonalSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('personalId').value;
+            const btn = document.getElementById('btnSavePersonal');
+            btn.disabled = true;
+
+            const payload = {
+                nombre: document.getElementById('nombre').value.trim(),
+                apellido_paterno: document.getElementById('apellidoPaterno').value.trim(),
+                apellido_materno: document.getElementById('apellidoMaterno').value.trim(),
+                puesto: document.getElementById('puesto').value.trim(),
+                correo: document.getElementById('correo').value.trim(),
+                telefono: document.getElementById('telefono').value.trim(),
+                id_area: document.getElementById('idArea').value || null,
+                estatus: document.getElementById('estatus').value
+            };
+
+            try {
+                if (typeof InvDB !== 'undefined') {
+                    if (id && InvDB.updatePersonal) {
+                        await InvDB.updatePersonal(id, payload);
+                    } else if (InvDB.createPersonal) {
+                        await InvDB.createPersonal(payload);
+                    }
+                }
+                closeModal();
+                await loadPersonal();
+            } catch (err) {
+                console.error('Error saving personal:', err);
+                alert('Error al guardar: ' + (err.message || 'Error desconocido'));
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function editPersonal(id) {
+            try {
+                let personal = allPersonal.find(p => p.id === id);
+                if (personal) openModal(personal);
+            } catch (err) {
+                console.error('Error fetching personal:', err);
+            }
+        }
+
+        async function deletePersonal(id) {
+            if (!confirm('Are you sure you want to delete this record?')) return;
+            try {
+                if (typeof InvDB !== 'undefined' && InvDB.deletePersonal) {
+                    await InvDB.deletePersonal(id);
+                }
+                await loadPersonal();
+            } catch (err) {
+                console.error('Error deleting personal:', err);
+                alert('Error al eliminar: ' + (err.message || 'Error desconocido'));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadAreas();
+            await loadPersonal();
+        });
+    </script>
+</body>
+</html>
