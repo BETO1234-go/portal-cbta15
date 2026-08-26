@@ -229,353 +229,379 @@
             <form class="filters-form" onsubmit="return false;">
                 <div class="filter-group">
                     <label for="filterMatricula">Matricula</label>
-                    <input type="text" id="filterMatricula" placeholder="Ej. 12345">
+                    <input type="text" id="filterMatricula" placeholder="Ej: A001">
                 </div>
                 <div class="filter-group">
                     <label for="filterGrupo">Grupo</label>
                     <select id="filterGrupo">
-                        <option value="">Todos</option>
+                        <option value="">-- Todos --</option>
                     </select>
                 </div>
-                <div class="filter-group">
-                    <label for="filterParcial">Parcial</label>
-                    <select id="filterParcial">
-                        <option value="">Todos</option>
-                        <option value="1">1er Parcial</option>
-                        <option value="2">2do Parcial</option>
-                        <option value="3">3er Parcial</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="filterParcialAcademico">Parcial Academico</label>
-                    <select id="filterParcialAcademico">
-                        <option value="">Todos</option>
-                        <option value="1">1er Parcial</option>
-                        <option value="2">2do Parcial</option>
-                        <option value="3">3er Parcial</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-filter" id="btnFiltrar">
-                    <i class="fa-solid fa-magnifying-glass"></i> Filtrar
+                <button type="button" class="btn-filter" onclick="aplicarFiltros()">
+                    <i class="fa-solid fa-magnifying-glass"></i> Buscar
                 </button>
             </form>
 
-            <section class="charts-grid">
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-chart-pie"></i> Asistencia general</h3>
-                    <canvas id="chartAsistencia"></canvas>
+            <div id="graficasSection" style="display:none;">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3><i class="fa-solid fa-chart-pie"></i> Asistencia general</h3>
+                        <canvas id="chart_asistencia"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fa-solid fa-chart-bar"></i> Calificaciones por materia</h3>
+                        <canvas id="chart_calificaciones"></canvas>
+                    </div>
                 </div>
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-chart-bar"></i> Calificaciones globales</h3>
-                    <canvas id="chartGlobalGrades"></canvas>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3><i class="fa-solid fa-check-double"></i> Aprobados / Reprobados</h3>
+                        <canvas id="chart_aprobReprob"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fa-solid fa-chart-column"></i> Distribucion de calificaciones</h3>
+                        <canvas id="chart_distribucion"></canvas>
+                    </div>
                 </div>
-            </section>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3><i class="fa-solid fa-chart-line"></i> Tasa de aprobacion por materia</h3>
+                        <canvas id="chart_rendimiento"></canvas>
+                    </div>
+                </div>
+            </div>
 
-            <section class="charts-grid">
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-user-check"></i> Asistencia por alumno</h3>
-                    <canvas id="chartStudentAttendance"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-check-double"></i> Aprobados / Reprobados por parcial</h3>
-                    <canvas id="chartPassFailPartial"></canvas>
-                </div>
-            </section>
+            <div id="tablesSection" style="display:none;">
+                <section class="tables-section">
+                    <h2 id="titleRanking">Promedios por grupo</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>#</th><th>Matricula</th><th>Nombre</th><th>Promedio</th><th>Aprobadas</th><th>Reprobadas</th><th>Total</th></tr></thead>
+                            <tbody id="tbodyRanking"></tbody>
+                        </table>
+                    </div>
+                </section>
 
-            <section class="charts-grid">
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-chart-line"></i> Tendencia de promedios</h3>
-                    <canvas id="chartTrend"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-calendar-check"></i> Asistencia general (detalle)</h3>
-                    <canvas id="chartGeneralAttendance"></canvas>
-                </div>
-            </section>
+                <section class="tables-section">
+                    <h2>Reporte individual por materia</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Materia</th><th>P1</th><th>P2</th><th>P3</th><th>Promedio</th><th>Asistencia</th><th>Estado</th></tr></thead>
+                            <tbody id="tbodyReporteIndividual"></tbody>
+                        </table>
+                    </div>
+                </section>
 
-            <section class="charts-grid">
-                <div class="chart-card">
-                    <h3><i class="fa-solid fa-chart-column"></i> Aprobados / Reprobados general</h3>
-                    <canvas id="chartGeneralPassFail"></canvas>
-                </div>
-            </section>
-
-            <section class="tables-section">
-                <h2>Reporte individual por materia</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Materia</th>
-                                <th>P1</th>
-                                <th>P2</th>
-                                <th>P3</th>
-                                <th>Promedio</th>
-                                <th>Asistencia</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Datos cargados desde Supabase -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="tables-section">
-                <h2>Ranking de alumnos</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Matricula</th>
-                                <th>Nombre</th>
-                                <th>Grupo</th>
-                                <th>Promedio</th>
-                                <th>Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Datos cargados desde Supabase -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="tables-section">
-                <h2>Materias reprobadas</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Matricula</th>
-                                <th>Nombre</th>
-                                <th>Materia</th>
-                                <th>Parcial</th>
-                                <th>Calificacion</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Datos cargados desde Supabase -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="tables-section">
-                <h2>Indicadores academicos</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Indicador</th>
-                                <th>Valor</th>
-                                <th>Descripcion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Datos cargados desde Supabase -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                <section class="tables-section">
+                    <h2>Indicadores academicos</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Matricula</th><th>Nombre</th><th>Promedio</th><th>Asistencia</th><th>Estatus</th></tr></thead>
+                            <tbody id="tbodyIndicadores"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="../js/app.js">
+    <script src="../js/app.js"></script>
     <script src="../js/supabase.js"></script>
-    <script src="../js/db.js"></script></script>
+    <script src="../js/db.js"></script>
     <script>
-        (function () {
-            // ========== Placeholder data arrays ==========
-            // Replace with Supabase queries when backend is connected.
+    /* ==========================================================
+       REPORTES - Datos reales de Supabase
+       ========================================================== */
+    var chartInstances = {};
 
-            const asistenciaData = {
-                labels: ['Presente', 'Ausente', 'Retardo', 'Justificado'],
-                values: [820, 65, 30, 45]
-            };
+    var chartConfigs = {
+        asistencia: { el: null, chart: null },
+        calificaciones: { el: null, chart: null },
+        aprobReprob: { el: null, chart: null },
+        distribucion: { el: null, chart: null },
+        rendimiento: { el: null, chart: null }
+    };
 
-            const globalGradesData = {
-                labels: ['1er Parcial', '2do Parcial', '3er Parcial'],
-                datasets: [
-                    { label: 'Promedio', values: [78, 80, 76] },
-                    { label: 'Maximo', values: [100, 100, 100] },
-                    { label: 'Minimo', values: [40, 35, 38] }
-                ]
-            };
+    document.addEventListener('DOMContentLoaded', function() {
+        Object.keys(chartConfigs).forEach(function(k) {
+            chartConfigs[k].el = document.getElementById('chart_' + k);
+        });
+        cargarGrupos();
+    });
 
-            const studentAttendanceData = {
-                labels: ['Alumno A', 'Alumno B', 'Alumno C', 'Alumno D', 'Alumno E'],
-                present: [90, 85, 70, 95, 60],
-                absent: [5, 10, 20, 3, 30]
-            };
+    async function cargarGrupos() {
+        var sel = document.getElementById('filterGrupo');
+        if (!sel) return;
+        try {
+            var data = await DB.getGrupos(1, 100);
+            data.data.forEach(function(g) {
+                var o = document.createElement('option');
+                o.value = g.id;
+                var grado = g.catalogo_grados || {};
+                o.textContent = (grado.nombre || '') + ' ' + g.nombre;
+                sel.appendChild(o);
+            });
+        } catch(e) { console.error(e); }
+    }
 
-            const passFailPartialData = {
-                labels: ['1er Parcial', '2do Parcial', '3er Parcial'],
-                aprobados: [120, 115, 110],
-                reprobados: [30, 35, 40]
-            };
+    function aplicarFiltros() {
+        var grupoId = document.getElementById('filterGrupo').value;
+        var matricula = document.getElementById('filterMatricula').value.trim();
+        var graficasSection = document.getElementById('graficasSection');
+        var tablesSection = document.getElementById('tablesSection');
 
-            const trendData = {
-                labels: ['Sep', 'Oct', 'Nov', 'Dic', 'Ene', 'Feb'],
-                promedios: [72, 74, 76, 78, 79, 80]
-            };
+        if (grupoId) {
+            graficasSection.style.display = '';
+            cargarCharts(grupoId);
+        } else {
+            graficasSection.style.display = 'none';
+        }
 
-            const generalAttendanceData = {
-                labels: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes'],
-                values: [92, 88, 90, 85, 78]
-            };
+        if (matricula) {
+            tablesSection.style.display = '';
+            cargarReporteIndividual(matricula);
+        } else if (grupoId) {
+            tablesSection.style.display = '';
+            cargarReporteGrupo(grupoId);
+        } else {
+            tablesSection.style.display = 'none';
+        }
+    }
 
-            const generalPassFailData = {
+    /* ---- Charts from Supabase ---- */
+    async function cargarCharts(grupoId) {
+        try {
+            var [calData, asiData] = await Promise.all([
+                DB.getCalificaciones(1, 1000),
+                DB.getAsistencias(1, 1000)
+            ]);
+
+            var calif = calData.data.filter(function(c) {
+                return !grupoId || (c.alumnos && c.alumnos.grupo_id == grupoId);
+            });
+            var asist = asiData.data.filter(function(a) {
+                return !grupoId || (a.alumnos && a.alumnos.grupo_id == grupoId);
+            });
+
+            renderChartAsistencia(asist);
+            renderChartCalificaciones(calif);
+            renderChartAprobReprob(calif);
+            renderChartDistribucion(calif);
+            renderChartRendimiento(calif);
+        } catch(e) {
+            console.error('Error charts:', e);
+        }
+    }
+
+    function renderChartAsistencia(data) {
+        var totalAsist = 0, totalFaltas = 0;
+        data.forEach(function(a) {
+            totalAsist += a.asistencias || 0;
+            totalFaltas += (a.total_sesiones || 0) - (a.asistencias || 0);
+        });
+        var ctx = chartConfigs.asistencia.el;
+        if (chartConfigs.asistencia.chart) chartConfigs.asistencia.chart.destroy();
+        chartConfigs.asistencia.chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Asistencias', 'Faltas'],
+                datasets: [{ data: [totalAsist, totalFaltas], backgroundColor: ['#27ae60', '#e74c3c'] }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function renderChartCalificaciones(data) {
+        var materias = {};
+        data.forEach(function(c) {
+            var nom = (c.materias || {}).nombre || 'Sin materia';
+            if (!materias[nom]) materias[nom] = [];
+            materias[nom].push(c.promedio || 0);
+        });
+        var labels = Object.keys(materias);
+        var promedios = labels.map(function(l) {
+            var arr = materias[l];
+            return Math.round(arr.reduce(function(a, b) { return a + b; }, 0) / arr.length * 10) / 10;
+        });
+
+        var ctx = chartConfigs.calificaciones.el;
+        if (chartConfigs.calificaciones.chart) chartConfigs.calificaciones.chart.destroy();
+        chartConfigs.calificaciones.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Promedio por materia', data: promedios, backgroundColor: 'rgba(75,192,192,0.5)', borderColor: 'rgba(75,192,192,1)', borderWidth: 1 }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } }, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function renderChartAprobReprob(data) {
+        var aprob = 0, reprob = 0;
+        data.forEach(function(c) {
+            if ((c.promedio || 0) >= 6) aprob++;
+            else reprob++;
+        });
+        var ctx = chartConfigs.aprobReprob.el;
+        if (chartConfigs.aprobReprob.chart) chartConfigs.aprobReprob.chart.destroy();
+        chartConfigs.aprobReprob.chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
                 labels: ['Aprobados', 'Reprobados'],
-                values: [150, 45]
-            };
+                datasets: [{ data: [aprob, reprob], backgroundColor: ['#27ae60', '#e74c3c'] }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
 
-            // ========== Chart initializations ==========
+    function renderChartDistribucion(data) {
+        var rangos = { '0-5.9': 0, '6-7.9': 0, '8-8.9': 0, '9-10': 0 };
+        data.forEach(function(c) {
+            var p = c.promedio || 0;
+            if (p < 6) rangos['0-5.9']++;
+            else if (p < 8) rangos['6-7.9']++;
+            else if (p < 9) rangos['8-8.9']++;
+            else rangos['9-10']++;
+        });
+        var ctx = chartConfigs.distribucion.el;
+        if (chartConfigs.distribucion.chart) chartConfigs.distribucion.chart.destroy();
+        chartConfigs.distribucion.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(rangos),
+                datasets: [{ label: 'Distribucion', data: Object.values(rangos), backgroundColor: ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'] }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
 
-            // 1. Asistencia general (Pie)
-            new Chart(document.getElementById('chartAsistencia'), {
-                type: 'pie',
-                data: {
-                    labels: asistenciaData.labels,
-                    datasets: [{
-                        data: asistenciaData.values,
-                        backgroundColor: ['#27ae60', '#e74c3c', '#f39c12', '#3498db']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
+    function renderChartRendimiento(data) {
+        var materias = {};
+        data.forEach(function(c) {
+            var nom = (c.materias || {}).nombre || 'Sin materia';
+            if (!materias[nom]) materias[nom] = { total: 0, aprob: 0 };
+            materias[nom].total++;
+            if ((c.promedio || 0) >= 6) materias[nom].aprob++;
+        });
+        var labels = Object.keys(materias);
+        var tasas = labels.map(function(l) {
+            var m = materias[l];
+            return m.total > 0 ? Math.round(m.aprob / m.total * 100) : 0;
+        });
+
+        var ctx = chartConfigs.rendimiento.el;
+        if (chartConfigs.rendimiento.chart) chartConfigs.rendimiento.chart.destroy();
+        chartConfigs.rendimiento.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Tasa aprobacion (%)', data: tasas, backgroundColor: 'rgba(54,162,235,0.5)', borderColor: 'rgba(54,162,235,1)', borderWidth: 1 }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    /* ---- Tables ---- */
+    async function cargarReporteIndividual(matricula) {
+        try {
+            var result = await DB.getAlumnos(1, 100);
+            var alumno = result.data.find(function(a) {
+                return a.numero_control === matricula || a.matricula === matricula;
+            });
+            if (!alumno) {
+                document.getElementById('tbodyReporteIndividual').innerHTML = '<tr><td colspan="7">Alumno no encontrado</td></tr>';
+                return;
+            }
+
+            var [calData, asiData] = await Promise.all([
+                DB.getCalificaciones(1, 1000),
+                DB.getAsistencias(1, 1000)
+            ]);
+
+            var calif = calData.data.filter(function(c) { return c.alumno_id === alumno.id; });
+            var asist = asiData.data.filter(function(a) { return a.alumno_id === alumno.id; });
+
+            var html = '';
+            calif.forEach(function(c) {
+                var mat = c.materias || {};
+                var asi = asist.find(function(a) { return a.materia_id === c.materia_id; });
+                var promedio = c.promedio || 0;
+                var badge = promedio >= 6 ? '<span class="badge-aprobado">APROBADO</span>' : '<span class="badge-reprobado">REPROBADO</span>';
+                var asistencia = asi ? asi.porcentaje + '%' : '-';
+                html += '<tr><td>' + (mat.nombre || '-') + '</td><td>' + (c.parcial_1 || '-') + '</td><td>' + (c.parcial_2 || '-') + '</td><td>' + (c.parcial_3 || '-') + '</td><td>' + promedio + '</td><td>' + asistencia + '</td><td>' + badge + '</td></tr>';
+            });
+            document.getElementById('tbodyReporteIndividual').innerHTML = html || '<tr><td colspan="7">Sin calificaciones registradas</td></tr>';
+
+            cargarIndicadores([alumno], calData.data, asiData.data);
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+    async function cargarReporteGrupo(grupoId) {
+        try {
+            var [alumnosData, calData, asiData] = await Promise.all([
+                DB.getAlumnos(1, 100),
+                DB.getCalificaciones(1, 1000),
+                DB.getAsistencias(1, 1000)
+            ]);
+
+            var alumnos = alumnosData.data.filter(function(a) { return a.grupo_id == grupoId; });
+            var calif = calData.data;
+            var asist = asiData.data;
+
+            var reporte = alumnos.map(function(a) {
+                var calAlumno = calif.filter(function(c) { return c.alumno_id === a.id; });
+                var promedio = calAlumno.length > 0 ? calAlumno.reduce(function(s, c) { return s + (c.promedio || 0); }, 0) / calAlumno.length : 0;
+                var aprob = calAlumno.filter(function(c) { return (c.promedio || 0) >= 6; }).length;
+                var reprob = calAlumno.filter(function(c) { return (c.promedio || 0) < 6; }).length;
+                var asiAlumno = asist.filter(function(a2) { return a2.alumno_id === a.id; });
+                var asiProm = asiAlumno.length > 0 ? asiAlumno.reduce(function(s, a2) { return s + (a2.porcentaje || 0); }, 0) / asiAlumno.length : 0;
+
+                return {
+                    matricula: a.numero_control,
+                    nombre: a.nombre_completo,
+                    promedio: Math.round(promedio * 100) / 100,
+                    aprob: aprob,
+                    reprob: reprob,
+                    total: calAlumno.length,
+                    asistencia: Math.round(asiProm * 100) / 100
+                };
             });
 
-            // 2. Calificaciones globales (Bar)
-            new Chart(document.getElementById('chartGlobalGrades'), {
-                type: 'bar',
-                data: {
-                    labels: globalGradesData.labels,
-                    datasets: globalGradesData.datasets.map(function (ds, i) {
-                        return {
-                            label: ds.label,
-                            data: ds.values,
-                            backgroundColor: ['#27ae60', '#3498db', '#e74c3c'][i]
-                        };
-                    })
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true, max: 100 } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+            reporte.sort(function(a, b) { return b.promedio - a.promedio; });
 
-            // 3. Asistencia por alumno (Bar stacked)
-            new Chart(document.getElementById('chartStudentAttendance'), {
-                type: 'bar',
-                data: {
-                    labels: studentAttendanceData.labels,
-                    datasets: [
-                        {
-                            label: 'Presente',
-                            data: studentAttendanceData.present,
-                            backgroundColor: '#27ae60'
-                        },
-                        {
-                            label: 'Ausente',
-                            data: studentAttendanceData.absent,
-                            backgroundColor: '#e74c3c'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: { x: { stacked: true }, y: { stacked: true } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
+            var html = '';
+            reporte.forEach(function(r, i) {
+                var badge = r.promedio >= 6 ? '<span class="badge-aprobado">APROBADO</span>' : '<span class="badge-reprobado">REPROBADO</span>';
+                html += '<tr><td>' + (i + 1) + '</td><td>' + r.matricula + '</td><td>' + r.nombre + '</td><td>' + r.promedio + '</td><td>' + r.aprob + '</td><td>' + r.reprob + '</td><td>' + r.total + '</td></tr>';
             });
+            document.getElementById('tbodyRanking').innerHTML = html || '<tr><td colspan="7">Sin datos para este grupo</td></tr>';
 
-            // 4. Aprobados / Reprobados por parcial (Bar grouped)
-            new Chart(document.getElementById('chartPassFailPartial'), {
-                type: 'bar',
-                data: {
-                    labels: passFailPartialData.labels,
-                    datasets: [
-                        {
-                            label: 'Aprobados',
-                            data: passFailPartialData.aprobados,
-                            backgroundColor: '#27ae60'
-                        },
-                        {
-                            label: 'Reprobados',
-                            data: passFailPartialData.reprobados,
-                            backgroundColor: '#e74c3c'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+            document.getElementById('titleRanking').textContent = 'Promedios por grupo (' + reporte.length + ' alumnos)';
 
-            // 5. Tendencia de promedios (Line)
-            new Chart(document.getElementById('chartTrend'), {
-                type: 'line',
-                data: {
-                    labels: trendData.labels,
-                    datasets: [{
-                        label: 'Promedio general',
-                        data: trendData.promedios,
-                        borderColor: '#1d6f42',
-                        backgroundColor: 'rgba(29,111,66,0.15)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: false, min: 50, max: 100 } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+            cargarIndicadores(alumnos, calif, asist);
+        } catch(e) {
+            console.error(e);
+        }
+    }
 
-            // 6. Asistencia general detalle (Bar)
-            new Chart(document.getElementById('chartGeneralAttendance'), {
-                type: 'bar',
-                data: {
-                    labels: generalAttendanceData.labels,
-                    datasets: [{
-                        label: 'Porcentaje asistencia',
-                        data: generalAttendanceData.values,
-                        backgroundColor: '#3498db'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true, max: 100 } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+    function cargarIndicadores(alumnos, calif, asist) {
+        var html = '';
+        alumnos.forEach(function(a) {
+            var calAlumno = calif.filter(function(c) { return c.alumno_id === a.id; });
+            var asiAlumno = asist.filter(function(a2) { return a2.alumno_id === a.id; });
+            var promedio = calAlumno.length > 0 ? calAlumno.reduce(function(s, c) { return s + (c.promedio || 0); }, 0) / calAlumno.length : 0;
+            var asiProm = asiAlumno.length > 0 ? asiAlumno.reduce(function(s, a2) { return s + (a2.porcentaje || 0); }, 0) / asiAlumno.length : 0;
+            var enRiesgo = promedio < 6 || asiProm < 80;
 
-            // 7. Aprobados / Reprobados general (Doughnut)
-            new Chart(document.getElementById('chartGeneralPassFail'), {
-                type: 'doughnut',
-                data: {
-                    labels: generalPassFailData.labels,
-                    datasets: [{
-                        data: generalPassFailData.values,
-                        backgroundColor: ['#27ae60', '#e74c3c']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        })();
+            var bgColor = enRiesgo ? (promedio < 6 ? '#fdecea' : '#fff8e1') : '#e8f5e9';
+
+            html += '<tr style="background:' + bgColor + '"><td>' + (a.numero_control || '-') + '</td><td>' + (a.nombre_completo || '-') + '</td><td>' + Math.round(promedio * 100) / 100 + '</td><td>' + Math.round(asiProm * 100) / 100 + '%</td><td>' + (enRiesgo ? '<span class="badge-reprobado">EN RIESGO</span>' : '<span class="badge-aprobado">OK</span>') + '</td></tr>';
+        });
+        document.getElementById('tbodyIndicadores').innerHTML = html || '<tr><td colspan="5">Sin datos</td></tr>';
+    }
     </script>
 </body>
 </html>
