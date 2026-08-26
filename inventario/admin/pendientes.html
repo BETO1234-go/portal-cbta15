@@ -1,157 +1,121 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pendientes - Inventario Escolar</title>
-    <link rel="stylesheet" href="../../css/admin.css">
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        :root{--primary:#1a73e8;--primary-hover:#1557b0;--bg:#f0f2f5;--surface:#fff;--text:#1f2937;--text-muted:#6b7280;--border:#e5e7eb;--sidebar-bg:#fff;--sidebar-width:260px;--danger:#dc2626;--success:#16a34a;--warning:#f59e0b;--info:#0ea5e9}
-        body.dark{--primary:#4dabf7;--primary-hover:#339af0;--bg:#1a1a2e;--surface:#16213e;--text:#e4e6eb;--text-muted:#adb5bd;--border:#2d3748;--sidebar-bg:#0f1629;--danger:#fc5c65;--success:#26de81;--warning:#fed330;--info:#4bcffa}
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;transition:background .3s,color .3s}
-        .sidebar{width:var(--sidebar-width);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:background .3s,border-color .3s}
-        .sidebar-header{padding:24px 20px;border-bottom:1px solid var(--border)}
-        .sidebar-header h2{font-size:1.15rem;color:var(--primary);display:flex;align-items:center;gap:10px}
-        .sidebar-header h2 i{font-size:1.3rem}
-        .sidebar-header p{font-size:.8rem;color:var(--text-muted);margin-top:4px}
-        .sidebar-nav{flex:1;overflow-y:auto;padding:12px 0}
-        .sidebar-nav a{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--text-muted);text-decoration:none;font-size:.95rem;transition:all .2s;border-left:3px solid transparent}
-        .sidebar-nav a:hover{background:var(--bg);color:var(--text)}
-        .sidebar-nav a.active{background:rgba(26,115,232,.08);color:var(--primary);border-left-color:var(--primary);font-weight:600}
-        body.dark .sidebar-nav a.active{background:rgba(77,171,247,.1)}
-        .sidebar-nav a i{width:20px;text-align:center;font-size:1rem}
-        .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border)}
-        .sidebar-footer .user-info{font-size:.85rem;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-        .sidebar-footer .user-info i{color:var(--primary)}
-        .sidebar-footer .footer-actions{display:flex;align-items:center;gap:8px}
-        .sidebar-footer button{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
-        .sidebar-footer button:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
-        .sidebar-footer .btn-logout:hover{background:var(--danger);border-color:var(--danger)}
-        .main-content{margin-left:var(--sidebar-width);flex:1;padding:32px;min-height:100vh}
-        .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px}
-        .page-header h1{font-size:1.8rem;color:var(--text)}
-        .page-header h1 i{color:var(--primary);margin-right:8px}
-        .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;transition:background .3s,border-color .3s}
-        .table-container{overflow-x:auto}
-        table{width:100%;border-collapse:collapse}
-        table th,table td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:.88rem}
-        table th{font-weight:600;color:var(--text-muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;background:var(--bg)}
-        table tr:hover td{background:rgba(26,115,232,.03)}
-        body.dark table tr:hover td{background:rgba(77,171,247,.05)}
-        .badge{padding:4px 10px;border-radius:20px;font-size:.76rem;font-weight:600;display:inline-block;white-space:nowrap}
-        .badge-success{background:rgba(22,163,74,.12);color:#16a34a}
-        .badge-info{background:rgba(14,165,233,.12);color:#0ea5e9}
-        .badge-warning{background:rgba(245,158,11,.12);color:#d97706}
-        .badge-danger{background:rgba(220,38,38,.12);color:#dc2626}
-        .badge-orange{background:rgba(249,115,22,.12);color:#ea580c}
-        .badge-red{background:rgba(220,38,38,.12);color:#dc2626}
-        .badge-yellow{background:rgba(245,158,11,.12);color:#d97706}
-        .badge-bg-orange{background:rgba(249,115,22,.12);color:#ea580c}
-        .btn{padding:10px 18px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:.9rem;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:all .2s;text-decoration:none}
-        .btn:hover{background:var(--bg)}
-        .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
-        .btn-primary:hover{background:var(--primary-hover)}
-        .btn-sm{padding:6px 12px;font-size:.82rem}
-        .btn-success{background:var(--success);color:#fff;border-color:var(--success)}
-        .pagination{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap}
-        .pagination button{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:.88rem;transition:all .2s}
-        .pagination button:hover{background:var(--bg)}
-        .pagination button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-        .pagination button:disabled{opacity:.4;cursor:not-allowed}
-        .empty-state{text-align:center;padding:48px 20px;color:var(--text-muted)}
-        .empty-state i{font-size:3rem;margin-bottom:12px;display:block;opacity:.4}
-        .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
-        .modal-overlay.show{display:flex}
-        .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:32px;position:relative;transition:background .3s,border-color .3s}
-        .modal h2{font-size:1.3rem;color:var(--text);margin-bottom:24px;display:flex;align-items:center;gap:10px}
-        .modal h2 i{color:var(--primary)}
-        .modal-close{position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.3rem;color:var(--text-muted);cursor:pointer;transition:color .2s}
-        .modal-close:hover{color:var(--danger)}
-        .form-group{margin-bottom:16px}
-        .form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:.85rem;color:var(--text)}
-        .form-group label .req{color:var(--danger)}
-        .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:.95rem;outline:none;transition:border .3s}
-        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary)}
-        .form-group textarea{resize:vertical;min-height:80px}
-        .form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
-        @media(max-width:768px){.sidebar{display:none}.main-content{margin-left:0;padding:20px}.page-header{flex-direction:column;align-items:flex-start}}
-    </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+<div class="contenedor">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="mainSidebar">
         <div class="sidebar-header">
-            <h2><i class="fas fa-boxes-stacked"></i> Inventario</h2>
-            <p>CBTA 15</p>
+            <div class="logo">
+                <div class="logo-copy">
+                    <h2 title="Sistema de Inventario">Sistema de Inventario</h2>
+                    <p id="userRole">Administrador</p>
+                </div>
+            </div>
         </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="bienes.html"><i class="fas fa-box-open"></i> Bienes</a>
-            <a href="personal.html"><i class="fas fa-users"></i> Personal</a>
-            <a href="areas.html"><i class="fas fa-building"></i> Areas</a>
-            <a href="asignaciones.html"><i class="fas fa-link"></i> Asignaciones</a>
-            <a href="historial.html"><i class="fas fa-clock-rotate-left"></i> Historial</a>
-            <a href="reportes.html"><i class="fas fa-file-lines"></i> Reportes</a>
-            <a href="pendientes.html" class="active"><i class="fas fa-hourglass-half"></i> Pendientes</a>
-            <a href="usuarios.html"><i class="fas fa-user-shield"></i> Usuarios</a>
+        <nav class="sidebar-menu menu" aria-label="Menu principal">
+            <a href="dashboard.html"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+            <a href="bienes.html"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
+            <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
+            <a href="areas.html"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+            <a href="asignaciones.html"><i class="fa-solid fa-link"></i><span>Asignaciones</span></a>
+            <a href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
+            <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
+            <a href="pendientes.html" class="activo"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
+            <a href="usuarios.html"><i class="fa-solid fa-user-gear"></i><span>Usuarios</span></a>
         </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Cargando...</span>
-            </div>
-            <div class="footer-actions">
-                <button onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesion">
-                    <i class="fas fa-right-from-bracket"></i> Salir
-                </button>
-            </div>
+        <div class="sidebar-footer logout">
+            <a href="#" onclick="toggleTheme(); return false;">
+                <i class="fa-solid fa-palette"></i>
+                <span data-theme-label>Cambiar tema</span>
+            </a>
+            <a href="../login.html" onclick="invLogout();">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar sesi&oacute;n</span>
+            </a>
         </div>
     </aside>
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1><i class="fas fa-hourglass-half"></i> Bienes Pendientes</h1>
-        </div>
-
-        <div class="card">
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No. Inventario</th>
-                            <th>Bien</th>
-                            <th>Marca</th>
-                            <th>Estatus</th>
-                            <th>Area</th>
-                            <th>Personal</th>
-                            <th>Prioridad</th>
-                            <th>Accion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pendientesTableBody">
-                        <tr>
-                            <td colspan="8" class="empty-state">
-                                <i class="fas fa-hourglass-half"></i>
-                                Cargando bienes pendientes...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+    <main class="contenido">
+        <div class="header">
+            <div>
+                <h2>Bienes Pendientes</h2>
+                <p>Bienes que requieren atenci&oacute;n o asignaci&oacute;n</p>
             </div>
-            <div class="pagination" id="paginationControls"></div>
         </div>
-    </main>
 
-    <div class="modal-overlay" id="resolverModal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <h2><i class="fas fa-wrench"></i> Resolver Bien</h2>
+        <section class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No. Inventario</th>
+                        <th>Nombre</th>
+                        <th>Marca</th>
+                        <th>&Aacute;rea</th>
+                        <th>Responsable</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="pendientesTableBody">
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Cargando bienes pendientes...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="paginacion" id="paginationControls"></div>
+        </section>
+    </main>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal" class="component-modal">
+    <div class="component-modal-content component-modal-sm">
+        <div class="component-modal-header">
+            <h2 id="confirmModalTitle">Confirmar</h2>
+            <button type="button" class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+        </div>
+        <div class="component-modal-body"><p id="confirmModalMessage" style="font-size:15px;line-height:1.6;"></p></div>
+        <div class="component-modal-footer">
+            <button type="button" class="btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+            <button type="button" class="btn-agregar" id="confirmModalBtn">Aceptar</button>
+        </div>
+    </div>
+</div>
+<!-- Alert Modal -->
+<div id="alertModal" class="component-modal">
+    <div class="component-modal-content component-modal-sm">
+        <div class="component-modal-header">
+            <h2 id="alertModalTitle">Aviso</h2>
+            <button type="button" class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+        </div>
+        <div class="component-modal-body"><p id="alertModalMessage" style="font-size:15px;line-height:1.6;"></p></div>
+        <div class="component-modal-footer"><button type="button" class="btn-agregar" onclick="closeAlertModal()">Aceptar</button></div>
+    </div>
+</div>
+
+<!-- Resolver Modal -->
+<div id="resolverModal" class="component-modal">
+    <div class="component-modal-content">
+        <div class="component-modal-header">
+            <h2><i class="fa-solid fa-wrench"></i> Resolver Bien</h2>
+            <button type="button" class="component-modal-close" onclick="closeResolverModal()">&times;</button>
+        </div>
+        <div class="component-modal-body">
             <form id="resolverForm" onsubmit="handleResolverSubmit(event)">
                 <input type="hidden" id="bienId">
 
@@ -166,25 +130,25 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Accion a realizar <span class="req">*</span></label>
+                    <label>Acci&oacute;n a realizar <span style="color:var(--danger);">*</span></label>
                     <select id="accionResolver" required onchange="handleAccionChange()">
-                        <option value="">-- Seleccionar accion --</option>
-                        <option value="asignar">Asignar &rarr; Asignado</option>
-                        <option value="mantenimiento">Mantenimiento &rarr; En mantenimiento</option>
-                        <option value="reparar">Reparar &rarr; En revision</option>
-                        <option value="descartar">Descartar &rarr; Baja</option>
+                        <option value="">-- Seleccionar acci&oacute;n --</option>
+                        <option value="asignar">Asignar</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                        <option value="reparar">Reparar</option>
+                        <option value="descartar">Descartar (Baja)</option>
                     </select>
                 </div>
 
-                <div class="form-group" id="areaGroup">
-                    <label>Nueva Area</label>
+                <div class="form-group" id="areaGroup" style="display:none;">
+                    <label>&Aacute;rea</label>
                     <select id="nuevaArea">
-                        <option value="">-- Seleccionar area --</option>
+                        <option value="">-- Seleccionar &aacute;rea --</option>
                     </select>
                 </div>
 
-                <div class="form-group" id="personalGroup">
-                    <label>Nuevo Personal</label>
+                <div class="form-group" id="personalGroup" style="display:none;">
+                    <label>Personal</label>
                     <select id="nuevoPersonal">
                         <option value="">-- Seleccionar personal --</option>
                     </select>
@@ -192,246 +156,287 @@
 
                 <div class="form-group">
                     <label>Observaciones</label>
-                    <textarea id="observaciones" placeholder="Detalles de la resolucion..."></textarea>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnResolver">
-                        <i class="fas fa-save"></i> Guardar
-                    </button>
+                    <textarea id="observaciones" placeholder="Detalles de la resoluci&oacute;n..."></textarea>
                 </div>
             </form>
         </div>
+        <div class="component-modal-footer">
+            <button type="button" class="btn-secundario" onclick="closeResolverModal()">Cancelar</button>
+            <button type="button" class="btn-agregar" id="btnResolver" onclick="document.getElementById('resolverForm').requestSubmit()">
+                <i class="fa-solid fa-save"></i> Guardar
+            </button>
+        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="../js/supabase.js"></script>
-    <script src="../js/db.js"></script>
-    <script src="../js/app.js"></script>
-    <script>
-        let allPendientes = [];
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/app.js"></script>
+<script>
+    var allPendientes = [];
+    var perPage = 15;
+    var currentPage = 1;
 
-        function toggleTheme() {
-            var body = document.body;
-            var icon = document.getElementById('themeIcon');
-            if (body.classList.contains('dark')) {
-                body.classList.remove('dark');
-                icon.className = 'fas fa-moon';
-                localStorage.setItem('inv_theme', 'light');
-            } else {
-                body.classList.add('dark');
-                icon.className = 'fas fa-sun';
-                localStorage.setItem('inv_theme', 'dark');
+    function getEstatusBadge(estatus) {
+        var map = {
+            'Asignado': 'tag asignacion',
+            'Disponible': 'tag alta',
+            'Pendiente': 'tag modificacion',
+            'En revision': 'tag modificacion',
+            'En mantenimiento': 'tag modificacion',
+            'Baja': 'tag baja',
+            'Danado': 'tag baja'
+        };
+        return '<span class="' + (map[estatus] || 'tag alta') + '">' + (estatus || 'N/A') + '</span>';
+    }
+
+    async function loadPendientes() {
+        try {
+            if (typeof requireInvAuth === 'function') await requireInvAuth();
+
+            var data = [];
+            if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
+                data = await InvDB.getBienes({ estatus: 'Pendiente' });
             }
+
+            allPendientes = data || [];
+            renderPendientes();
+        } catch (err) {
+            console.error('Error loading pendientes:', err);
+            document.getElementById('pendientesTableBody').innerHTML =
+                '<tr><td colspan="7" class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar pendientes</td></tr>';
         }
+    }
 
-        (function () {
-            var saved = localStorage.getItem('inv_theme');
-            if (saved === 'dark') {
-                document.body.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
-            }
-        })();
+    function renderPendientes() {
+        var tbody = document.getElementById('pendientesTableBody');
+        var total = allPendientes.length;
+        var totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
 
-        function handleLogout() {
-            if (typeof invLogout === 'function') invLogout();
-            window.location.href = '../login.html';
-        }
+        var start = (currentPage - 1) * perPage;
+        var pageData = allPendientes.slice(start, start + perPage);
 
-        function getEstatusBadge(estatus) {
-            var map = {
-                'Asignado': 'badge-success',
-                'Disponible': 'badge-info',
-                'Pendiente': 'badge-warning',
-                'Baja': 'badge-danger',
-                'En mantenimiento': 'badge-orange',
-                'En revision': 'badge-orange',
-                'Danado': 'badge-danger'
-            };
-            return '<span class="badge ' + (map[estatus] || 'badge-info') + '">' + (estatus || 'N/A') + '</span>';
-        }
-
-        function getPrioridad(estatus) {
-            if (estatus === 'Danado' || estatus === 'Baja') return { label: 'Alta', cls: 'badge badge-danger' };
-            if (estatus === 'En revision' || estatus === 'En mantenimiento') return { label: 'Media', cls: 'badge badge-orange' };
-            return { label: 'Baja', cls: 'badge badge-warning' };
-        }
-
-        async function loadPendientes() {
-            try {
-                if (typeof requireInvAuth === 'function') await requireInvAuth();
-
-                var user = typeof getInvUser === 'function' ? getInvUser() : null;
-                var nameEl = document.getElementById('userName');
-                if (user && nameEl) nameEl.textContent = user.email || user.name || 'Usuario';
-
-                var result = { data: [], total: 0 };
-                if (typeof InvDB !== 'undefined' && InvDB.getPendientes) {
-                    result = await InvDB.getPendientes(1, 100);
+        if (pageData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fa-solid fa-check-circle"></i> No hay bienes pendientes</td></tr>';
+        } else {
+            tbody.innerHTML = pageData.map(function (b) {
+                var areaNombre = '-';
+                if (b.inv_areas) {
+                    areaNombre = b.inv_areas.nombre_area || b.inv_areas.nombre || '-';
+                } else if (b.area_nombre) {
+                    areaNombre = b.area_nombre;
+                } else if (b.id_area) {
+                    areaNombre = b.id_area;
                 }
 
-                allPendientes = result.data || [];
-                renderPendientes();
-            } catch (err) {
-                console.error('Error loading pendientes:', err);
-                document.getElementById('pendientesTableBody').innerHTML =
-                    '<tr><td colspan="8" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error al cargar pendientes</td></tr>';
-            }
-        }
-
-        function renderPendientes() {
-            var tbody = document.getElementById('pendientesTableBody');
-
-            if (allPendientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-check-circle"></i> No hay bienes pendientes</td></tr>';
-            } else {
-                tbody.innerHTML = allPendientes.map(function (b) {
-                    var areaNombre = b.inv_areas ? b.inv_areas.nombre_area : (b.id_area || '-');
-                    var personalNombre = '-';
-                    if (b.inv_personal) {
-                        personalNombre = [b.inv_personal.nombre, b.inv_personal.apellido_paterno].filter(Boolean).join(' ');
-                    }
-                    var pri = getPrioridad(b.estatus);
-                    return '<tr>' +
-                        '<td><strong>' + (b.no_inventario || 'N/A') + '</strong></td>' +
-                        '<td>' + (b.nombre_bien || 'N/A') + '</td>' +
-                        '<td>' + (b.marca || '-') + '</td>' +
-                        '<td>' + getEstatusBadge(b.estatus) + '</td>' +
-                        '<td>' + areaNombre + '</td>' +
-                        '<td>' + personalNombre + '</td>' +
-                        '<td><span class="' + pri.cls + '">' + pri.label + '</span></td>' +
-                        '<td><button class="btn btn-sm btn-success" onclick="openResolver(\'' + b.id + '\', \'' + (b.no_inventario || '').replace(/'/g, "\\'") + '\', \'' + (b.nombre_bien || '').replace(/'/g, "\\'") + '\')"><i class="fas fa-wrench"></i> Resolver</button></td>' +
-                        '</tr>';
-                }).join('');
-            }
-
-            document.getElementById('paginationControls').innerHTML = '';
-        }
-
-        async function loadSelects() {
-            try {
-                if (typeof InvDB !== 'undefined') {
-                    if (InvDB.getAreas) {
-                        var result = await InvDB.getAreas();
-                        var areas = result.data || result;
-                        var areaSelect = document.getElementById('nuevaArea');
-                        areas.forEach(function (a) {
-                            var opt = document.createElement('option');
-                            opt.value = a.id;
-                            opt.textContent = a.nombre_area || a.nombre || a.id;
-                            areaSelect.appendChild(opt);
-                        });
-                    }
-
-                    if (InvDB.getPersonal) {
-                        var pResult = await InvDB.getPersonal();
-                        var personal = pResult.data || pResult;
-                        var perSelect = document.getElementById('nuevoPersonal');
-                        personal.forEach(function (p) {
-                            var opt = document.createElement('option');
-                            opt.value = p.id;
-                            opt.textContent = p.nombre_completo || [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ') || p.id;
-                            perSelect.appendChild(opt);
-                        });
-                    }
+                var personalNombre = '-';
+                if (b.inv_personal) {
+                    personalNombre = [b.inv_personal.nombre, b.inv_personal.apellido_paterno, b.inv_personal.apellido_materno].filter(Boolean).join(' ');
+                } else if (b.personal_nombre) {
+                    personalNombre = b.personal_nombre;
                 }
-            } catch (err) {
-                console.error('Error loading selects:', err);
+
+                return '<tr>' +
+                    '<td><strong>' + (b.no_inventario || 'N/A') + '</strong></td>' +
+                    '<td>' + (b.nombre_bien || 'N/A') + '</td>' +
+                    '<td>' + (b.marca || '-') + '</td>' +
+                    '<td>' + areaNombre + '</td>' +
+                    '<td>' + personalNombre + '</td>' +
+                    '<td>' + getEstatusBadge(b.estatus) + '</td>' +
+                    '<td>' +
+                        '<div class="action-btns">' +
+                            '<button title="Asignar" onclick="asignarBien(\'' + b.id + '\', \'' + (b.no_inventario || '').replace(/'/g, "\\'") + '\', \'' + (b.nombre_bien || '').replace(/'/g, "\\'") + '\')"><i class="fa-solid fa-link"></i></button>' +
+                            '<button title="Baja" class="btn-del" onclick="bajaBien(\'' + b.id + '\', \'' + (b.no_inventario || '').replace(/'/g, "\\'") + '\')"><i class="fa-solid fa-trash"></i></button>' +
+                        '</div>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        var container = document.getElementById('paginationControls');
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+        var html = '<div class="paginas">';
+        html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')"><i class="fa-solid fa-chevron-left"></i></button>';
+
+        for (var i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += '<button disabled>...</button>';
             }
         }
 
-        function openResolver(bienId, noInventario, nombreBien) {
-            document.getElementById('resolverForm').reset();
-            document.getElementById('bienId').value = bienId;
-            document.getElementById('noInventario').value = noInventario;
-            document.getElementById('nombreBien').value = nombreBien;
-            document.getElementById('resolverModal').classList.add('show');
-        }
+        html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')"><i class="fa-solid fa-chevron-right"></i></button>';
+        html += '</div>';
+        container.innerHTML = html;
+    }
 
-        function closeModal() {
-            document.getElementById('resolverModal').classList.remove('show');
-        }
+    function goToPage(page) {
+        currentPage = page;
+        renderPendientes();
+    }
 
-        function handleAccionChange() {
-            var accion = document.getElementById('accionResolver').value;
-            var areaGroup = document.getElementById('areaGroup');
-            var personalGroup = document.getElementById('personalGroup');
-
-            if (accion === 'asignar') {
-                areaGroup.style.display = 'block';
-                personalGroup.style.display = 'block';
-            } else if (accion === 'mantenimiento' ||accion === 'reparar') {
-                areaGroup.style.display = 'block';
-                personalGroup.style.display = 'none';
-            } else {
-                areaGroup.style.display = 'none';
-                personalGroup.style.display = 'none';
-            }
-        }
-
-        async function handleResolverSubmit(e) {
-            e.preventDefault();
-            var btn = document.getElementById('btnResolver');
-            btn.disabled = true;
-
-            var bienId = document.getElementById('bienId').value;
-            var accion = document.getElementById('accionResolver').value;
-            var area = document.getElementById('nuevaArea').value || null;
-            var personal = document.getElementById('nuevoPersonal').value || null;
-            var obs = document.getElementById('observaciones').value.trim();
-
-            var nuevoEstatus = '';
-            var tipoMovimiento = '';
-            if (accion === 'asignar') {
-                nuevoEstatus = 'Asignado';
-                tipoMovimiento = 'Asignacion';
-            } else if (accion === 'mantenimiento') {
-                nuevoEstatus = 'En mantenimiento';
-                tipoMovimiento = 'Mantenimiento';
-            } else if (accion === 'reparar') {
-                nuevoEstatus = 'En revision';
-                tipoMovimiento = 'Reparacion';
-            } else if (accion === 'descartar') {
-                nuevoEstatus = 'Baja';
-                tipoMovimiento = 'Baja';
-            }
-
-            try {
-                if (typeof InvDB !== 'undefined') {
-                    var updates = { estatus: nuevoEstatus };
-                    if (accion === 'asignar' && area) updates.id_area = area;
-                    if (accion === 'asignar' && personal) updates.id_personal = personal;
-                    if ((accion === 'mantenimiento' || accion === 'reparar') && area) updates.id_area = area;
-
-                    if (InvDB.updateBien) {
-                        await InvDB.updateBien(bienId, updates);
-                    }
-
-                    if (InvDB.createHistorial) {
-                        await InvDB.createHistorial({
-                            id_bien: bienId,
-                            id_area_nueva: area || null,
-                            id_personal_nuevo: personal || null,
-                            tipo_movimiento: tipoMovimiento,
-                            observaciones: obs
-                        });
-                    }
+    async function loadSelects() {
+        try {
+            if (typeof InvDB !== 'undefined') {
+                if (InvDB.getAreas) {
+                    var result = await InvDB.getAreas();
+                    var areas = result.data || result;
+                    var areaSelect = document.getElementById('nuevaArea');
+                    areas.forEach(function (a) {
+                        var opt = document.createElement('option');
+                        opt.value = a.id;
+                        opt.textContent = a.nombre_area || a.nombre || a.id;
+                        areaSelect.appendChild(opt);
+                    });
                 }
-                closeModal();
-                await loadPendientes();
-            } catch (err) {
-                console.error('Error resolving bien:', err);
-                alert('Error al resolver: ' + (err.message || 'Error desconocido'));
-            } finally {
-                btn.disabled = false;
-            }
-        }
 
-        document.addEventListener('DOMContentLoaded', async function () {
-            await loadSelects();
+                if (InvDB.getPersonal) {
+                    var pResult = await InvDB.getPersonal();
+                    var personal = pResult.data || pResult;
+                    var perSelect = document.getElementById('nuevoPersonal');
+                    personal.forEach(function (p) {
+                        var opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.nombre_completo || [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ') || p.id;
+                        perSelect.appendChild(opt);
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Error loading selects:', err);
+        }
+    }
+
+    function asignarBien(bienId, noInventario, nombreBien) {
+        document.getElementById('resolverForm').reset();
+        document.getElementById('bienId').value = bienId;
+        document.getElementById('noInventario').value = noInventario;
+        document.getElementById('nombreBien').value = nombreBien;
+        document.getElementById('accionResolver').value = 'asignar';
+        handleAccionChange();
+        openModal('resolverModal');
+    }
+
+    function bajaBien(bienId, noInventario) {
+        showConfirm('Est\u00e1 seguro de dar de baja el bien ' + noInventario + '?', function () {
+            ejecutarBaja(bienId);
+        }, 'Confirmar Baja');
+    }
+
+    async function ejecutarBaja(bienId) {
+        try {
+            if (typeof InvDB !== 'undefined') {
+                if (InvDB.updateBien) {
+                    await InvDB.updateBien(bienId, { estatus: 'Baja' });
+                }
+                if (InvDB.createHistorial) {
+                    await InvDB.createHistorial({
+                        id_bien: bienId,
+                        tipo_movimiento: 'Baja',
+                        observaciones: 'Baja desde panel de pendientes'
+                    });
+                }
+            }
+            showAlert('Bien dado de baja correctamente.');
             await loadPendientes();
-        });
-    </script>
+        } catch (err) {
+            console.error('Error al dar de baja:', err);
+            showAlert('Error al dar de baja: ' + (err.message || 'Error desconocido'));
+        }
+    }
+
+    function closeResolverModal() {
+        closeModal('resolverModal');
+    }
+
+    function handleAccionChange() {
+        var accion = document.getElementById('accionResolver').value;
+        var areaGroup = document.getElementById('areaGroup');
+        var personalGroup = document.getElementById('personalGroup');
+
+        if (accion === 'asignar') {
+            areaGroup.style.display = 'block';
+            personalGroup.style.display = 'block';
+        } else if (accion === 'mantenimiento' || accion === 'reparar') {
+            areaGroup.style.display = 'block';
+            personalGroup.style.display = 'none';
+        } else {
+            areaGroup.style.display = 'none';
+            personalGroup.style.display = 'none';
+        }
+    }
+
+    async function handleResolverSubmit(e) {
+        e.preventDefault();
+        var btn = document.getElementById('btnResolver');
+        btn.disabled = true;
+
+        var bienId = document.getElementById('bienId').value;
+        var accion = document.getElementById('accionResolver').value;
+        var area = document.getElementById('nuevaArea').value || null;
+        var personal = document.getElementById('nuevoPersonal').value || null;
+        var obs = document.getElementById('observaciones').value.trim();
+
+        var nuevoEstatus = '';
+        var tipoMovimiento = '';
+        if (accion === 'asignar') {
+            nuevoEstatus = 'Asignado';
+            tipoMovimiento = 'Asignacion';
+        } else if (accion === 'mantenimiento') {
+            nuevoEstatus = 'En mantenimiento';
+            tipoMovimiento = 'Mantenimiento';
+        } else if (accion === 'reparar') {
+            nuevoEstatus = 'En revision';
+            tipoMovimiento = 'Reparacion';
+        } else if (accion === 'descartar') {
+            nuevoEstatus = 'Baja';
+            tipoMovimiento = 'Baja';
+        }
+
+        try {
+            if (typeof InvDB !== 'undefined') {
+                var updates = { estatus: nuevoEstatus };
+                if (accion === 'asignar' && area) updates.id_area = area;
+                if (accion === 'asignar' && personal) updates.id_personal = personal;
+                if ((accion === 'mantenimiento' || accion === 'reparar') && area) updates.id_area = area;
+
+                if (InvDB.updateBien) {
+                    await InvDB.updateBien(bienId, updates);
+                }
+
+                if (InvDB.createHistorial) {
+                    await InvDB.createHistorial({
+                        id_bien: bienId,
+                        id_area_nueva: area || null,
+                        id_personal_nuevo: personal || null,
+                        tipo_movimiento: tipoMovimiento,
+                        observaciones: obs
+                    });
+                }
+            }
+            closeResolverModal();
+            showAlert('Bien actualizado correctamente.');
+            await loadPendientes();
+        } catch (err) {
+            console.error('Error resolving bien:', err);
+            showAlert('Error al resolver: ' + (err.message || 'Error desconocido'));
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        await loadSelects();
+        await loadPendientes();
+    });
+</script>
 </body>
 </html>

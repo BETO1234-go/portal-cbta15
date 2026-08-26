@@ -3,1159 +3,473 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienes - Inventario Escolar</title>
-    <link rel="stylesheet" href="../../css/admin.css">
-    <link rel="stylesheet" href="../../css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg: #f0f2f5;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --sidebar-bg: #ffffff;
-            --sidebar-width: 260px;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --warning: #f59e0b;
-            --info: #0ea5e9;
-        }
-
-        body.dark {
-            --primary: #4dabf7;
-            --primary-hover: #339af0;
-            --bg: #1a1a2e;
-            --surface: #16213e;
-            --text: #e4e6eb;
-            --text-muted: #adb5bd;
-            --border: #2d3748;
-            --sidebar-bg: #0f1629;
-            --danger: #fc5c65;
-            --success: #26de81;
-            --warning: #fed330;
-            --info: #4bcffa;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.15rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-header h2 i { font-size: 1.3rem; }
-
-        .sidebar-header p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 0;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-nav a:hover {
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .sidebar-nav a.active {
-            background: rgba(26, 115, 232, 0.08);
-            color: var(--primary);
-            border-left-color: var(--primary);
-            font-weight: 600;
-        }
-
-        body.dark .sidebar-nav a.active {
-            background: rgba(77, 171, 247, 0.1);
-        }
-
-        .sidebar-nav a i {
-            width: 20px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .sidebar-footer .user-info {
-            font-size: 0.85rem;
-            color: var(--text);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer .user-info i { color: var(--primary); }
-
-        .sidebar-footer .footer-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer button {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .sidebar-footer button:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .sidebar-footer .btn-logout:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .page-header h1 {
-            font-size: 1.8rem;
-            color: var(--text);
-        }
-
-        .page-header h1 i {
-            color: var(--primary);
-            margin-right: 8px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background: var(--bg);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-        }
-
-        .btn-danger {
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .btn-danger:hover {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .filters-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 220px;
-            position: relative;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 10px 14px 10px 40px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary);
-        }
-
-        .filter-select {
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.9rem;
-            outline: none;
-            min-width: 170px;
-            cursor: pointer;
-        }
-
-        .filter-select:focus {
-            border-color: var(--primary);
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.88rem;
-        }
-
-        table th {
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--bg);
-        }
-
-        table tr:hover td {
-            background: rgba(26, 115, 232, 0.03);
-        }
-
-        body.dark table tr:hover td {
-            background: rgba(77, 171, 247, 0.05);
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .badge-success { background: rgba(22,163,74,0.12); color: #16a34a; }
-        .badge-info { background: rgba(14,165,233,0.12); color: #0ea5e9; }
-        .badge-warning { background: rgba(245,158,11,0.12); color: #d97706; }
-        .badge-danger { background: rgba(220,38,38,0.12); color: #dc2626; }
-        .badge-orange { background: rgba(249,115,22,0.12); color: #ea580c; }
-
-        .action-btns {
-            display: flex;
-            gap: 6px;
-        }
-
-        .action-btns button {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .action-btns button:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .action-btns button.btn-qr:hover {
-            background: var(--info);
-            border-color: var(--info);
-        }
-
-        .action-btns button.btn-del:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .pagination button {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.88rem;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover {
-            background: var(--bg);
-        }
-
-        .pagination button.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .pagination button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            display: block;
-            opacity: 0.4;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 20px;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 620px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 32px;
-            position: relative;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .modal h2 {
-            font-size: 1.3rem;
-            color: var(--text);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal h2 i {
-            color: var(--primary);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: var(--danger);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        .form-group label .req {
-            color: var(--danger);
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: var(--primary);
-        }
-
-        .form-group input[readonly] {
-            opacity: 0.7;
-            cursor: default;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .qr-modal-content {
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        .qr-modal-content canvas {
-            max-width: 250px;
-            margin: 0 auto 16px;
-            display: block;
-            border: 4px solid var(--surface);
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-        }
-
-        .qr-modal-content p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 20px; }
-            .form-row { grid-template-columns: 1fr; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
+    <title>Gesti&oacute;n de Bienes - Inventario</title>
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
+    <div class="contenedor">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fas fa-boxes-stacked"></i> Inventario</h2>
-            <p>CBTA 15</p>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="bienes.html" class="active"><i class="fas fa-box-open"></i> Bienes</a>
-            <a href="personal.html"><i class="fas fa-users"></i> Personal</a>
-            <a href="areas.html"><i class="fas fa-building"></i> Areas</a>
-            <a href="asignaciones.html"><i class="fas fa-link"></i> Asignaciones</a>
-            <a href="historial.html"><i class="fas fa-clock-rotate-left"></i> Historial</a>
-            <a href="reportes.html"><i class="fas fa-file-lines"></i> Reportes</a>
-            <a href="pendientes.html"><i class="fas fa-hourglass-half"></i> Pendientes</a>
-            <a href="usuarios.html"><i class="fas fa-user-shield"></i> Usuarios</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Cargando...</span>
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Sistema de Inventario">Sistema de Inventario</h2>
+                        <p id="userRole">Administrador</p>
+                    </div>
+                </div>
             </div>
-            <div class="footer-actions">
-                <button onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesion">
-                    <i class="fas fa-right-from-bracket"></i> Salir
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <main class="main-content">
-        <div class="page-header">
-            <h1><i class="fas fa-box-open"></i> Bienes</h1>
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="openModal()">
-                    <i class="fas fa-plus"></i> Nuevo Bien
-                </button>
-                <button class="btn" onclick="importCSV()">
-                    <i class="fas fa-file-csv"></i> Importar CSV
-                </button>
-                <a href="papelera.html" class="btn btn-danger">
-                    <i class="fas fa-trash-can"></i> Papelera
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="dashboard.html"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <a href="bienes.html" class="activo"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
+                <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
+                <a href="areas.html"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+                <a href="asignaciones.html"><i class="fa-solid fa-link"></i><span>Asignaciones</span></a>
+                <a href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
+                <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
+                <a href="pendientes.html"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
+                <a href="usuarios.html"><i class="fa-solid fa-user-gear"></i><span>Usuarios</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i>
+                    <span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="../login.html" onclick="invLogout();" style="display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar sesi&oacute;n</span>
                 </a>
             </div>
-        </div>
+        </aside>
 
-        <div class="filters-bar">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Buscar por nombre, marca, serie, No. inventario..." oninput="debounceSearch()">
+        <main class="contenido">
+            <div class="header">
+                <div>
+                    <h1>Gesti&oacute;n de Bienes</h1>
+                    <p>Administra inventario de bienes institucionales</p>
+                </div>
+                <div class="header-right">
+                    <div class="page-actions">
+                        <button type="button" class="btn-agregar admin-only" onclick="openModalBien()">
+                            <i class="fa-solid fa-plus"></i> Nuevo bien
+                        </button>
+                    </div>
+                </div>
             </div>
-            <select class="filter-select" id="filterEstatus" onchange="loadBienes()">
-                <option value="">Todos</option>
-                <option value="Disponible">Disponible</option>
-                <option value="Asignado">Asignado</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Baja">Baja</option>
-                <option value="En revision">En revision</option>
-                <option value="En mantenimiento">En mantenimiento</option>
-                <option value="Danado">Danado</option>
-            </select>
-        </div>
 
-        <div class="card">
-            <div class="table-container">
-                <table>
+            <div class="filter-columns-container">
+                <div class="filter-columns-row">
+                    <div class="filter-col">
+                        <label>No. Inventario</label>
+                        <input type="text" class="column-filter" data-column="0" placeholder="INV-00001">
+                    </div>
+                    <div class="filter-col">
+                        <label>Nombre del bien</label>
+                        <input type="text" class="column-filter" data-column="1" placeholder="Computadora">
+                    </div>
+                    <div class="filter-col">
+                        <label>Marca</label>
+                        <input type="text" class="column-filter" data-column="2" placeholder="HP, Dell...">
+                    </div>
+                    <div class="filter-col">
+                        <label>Modelo</label>
+                        <input type="text" class="column-filter" data-column="3" placeholder="OptiPlex">
+                    </div>
+                    <div class="filter-col">
+                        <label>Estado</label>
+                        <select class="column-filter column-filter-select" data-column="4">
+                            <option value="">Todos</option>
+                            <option value="Disponible">Disponible</option>
+                            <option value="Asignado">Asignado</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    <div class="filter-col" style="display:flex;align-items:end;">
+                        <button type="button" class="btn-secundario" onclick="clearFilters()" style="width:100%;padding:8px 10px;font-size:13px;line-height:1.2;border-radius:10px;">
+                            <i class="fa-solid fa-filter-circle-xmark"></i> Limpiar filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabla-contenedor">
+                <table class="bienes-table">
                     <thead>
                         <tr>
                             <th>No. Inventario</th>
-                            <th>Nombre</th>
+                            <th>Nombre del bien</th>
                             <th>Marca</th>
                             <th>Modelo</th>
                             <th>Serie</th>
-                            <th>Area</th>
-                            <th>Personal</th>
-                            <th>Estatus</th>
-                            <th>Accion</th>
+                            <th>&Aacute;rea</th>
+                            <th>Estado</th>
+                            <th>Responsable</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="bienesTableBody">
+                    <tbody id="bienesBody">
                         <tr>
-                            <td colspan="9" class="empty-state">
-                                <i class="fas fa-box-open"></i>
-                                Cargando bienes...
+                            <td colspan="9" style="text-align:center;padding:40px;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando bienes...
                             </td>
                         </tr>
                     </tbody>
                 </table>
+                <div class="paginacion" id="paginacion"></div>
             </div>
-            <div class="pagination" id="paginationControls"></div>
-        </div>
-    </main>
 
-    <div class="modal-overlay" id="bienModal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <h2 id="modalTitle"><i class="fas fa-plus-circle"></i> Nuevo Bien</h2>
-            <form id="bienForm" onsubmit="handleBienSubmit(event)">
-                <input type="hidden" id="bienId">
-
-                <div class="form-row">
-                    <div class="form-group full">
-                        <label>No. Inventario</label>
-                        <input type="text" id="noInventario" readonly placeholder="Auto-generado">
+            <!-- Modal Agregar/Editar Bien -->
+            <div id="modalBien" class="component-modal">
+                <div class="component-modal-content">
+                    <div class="component-modal-header">
+                        <h2 id="modalBienTitle">Agregar bien</h2>
+                        <button type="button" class="component-modal-close" onclick="closeModal('modalBien')">&times;</button>
                     </div>
+                    <form id="formBien">
+                        <input type="hidden" id="bienId" value="">
+                        <div class="component-modal-body">
+                            <div class="form-group" id="noInventarioGroup" style="display:none;">
+                                <label for="no_inventario">No. Inventario</label>
+                                <input type="text" id="no_inventario" readonly>
+                                <small style="color:var(--muted);font-size:12px;margin-top:4px;display:block;">Se genera autom&aacute;ticamente.</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="nombre_bien">Nombre del bien *</label>
+                                <input type="text" id="nombre_bien" required minlength="3" maxlength="255">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="id_marca">Marca</label>
+                                    <select id="id_marca">
+                                        <option value="">Seleccionar marca</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="modelo">Modelo</label>
+                                    <input type="text" id="modelo" maxlength="100">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="serie">Serie</label>
+                                    <input type="text" id="serie" maxlength="150">
+                                </div>
+                                <div class="form-group">
+                                    <label for="valor">Valor ($)</label>
+                                    <input type="number" id="valor" step="0.01" min="0" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" id="form-group-area">
+                                    <label for="id_area">&Aacute;rea</label>
+                                    <select id="id_area">
+                                        <option value="">Seleccionar &aacute;rea</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="form-group-responsable">
+                                    <label for="id_personal">Responsable</label>
+                                    <select id="id_personal">
+                                        <option value="">Seleccionar personal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="estatus">Estado *</label>
+                                <select id="estatus" required>
+                                    <option value="Disponible">Disponible</option>
+                                    <option value="Asignado">Asignado</option>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Baja">Baja</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="component-modal-footer">
+                            <button type="button" class="btn-secundario" onclick="closeModal('modalBien')">Cancelar</button>
+                            <button type="submit" class="btn-agregar">Guardar</button>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Nombre del bien <span class="req">*</span></label>
-                        <input type="text" id="nombreBien" required placeholder="Ej. Computadora de escritorio">
-                    </div>
-                    <div class="form-group">
-                        <label>Marca</label>
-                        <input type="text" id="marca" placeholder="Ej. HP, Dell, Lenovo">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Modelo</label>
-                        <input type="text" id="modelo" placeholder="Ej. OptiPlex 7090">
-                    </div>
-                    <div class="form-group">
-                        <label>No. Serie</label>
-                        <input type="text" id="serie" placeholder="Numero de serie">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Adquisicion</label>
-                        <input type="text" id="adq" placeholder="Ej. Donacion, Compra, Transferencia">
-                    </div>
-                    <div class="form-group">
-                        <label>Valor ($)</label>
-                        <input type="number" id="valor" step="0.01" min="0" placeholder="0.00">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Area</label>
-                        <select id="idArea">
-                            <option value="">-- Seleccionar area --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Personal</label>
-                        <select id="idPersonal">
-                            <option value="">-- Seleccionar personal --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>ID SEP</label>
-                        <input type="text" id="idSep" placeholder="Clave SEP">
-                    </div>
-                    <div class="form-group">
-                        <label>Estatus</label>
-                        <select id="estatus">
-                            <option value="Disponible">Disponible</option>
-                            <option value="Asignado">Asignado</option>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="En revision">En revision</option>
-                            <option value="En mantenimiento">En mantenimiento</option>
-                            <option value="Baja">Baja</option>
-                            <option value="Danado">Danado</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveBien">
-                        <i class="fas fa-save"></i> Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
+            </div>
+        </main>
     </div>
 
-    <div class="modal-overlay" id="qrModal">
-        <div class="modal" style="max-width: 400px;">
-            <button class="modal-close" onclick="closeQRModal()">&times;</button>
-            <h2><i class="fas fa-qrcode"></i> Codigo QR</h2>
-            <div class="qr-modal-content">
-                <canvas id="qrCanvas"></canvas>
-                <p id="qrLabel"></p>
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="component-modal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="confirmModalTitle">Confirmar</h2>
+                <button type="button" class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
             </div>
-            <div class="form-actions">
-                <button class="btn" onclick="closeQRModal()">Cerrar</button>
-                <button class="btn btn-primary" onclick="printQR()">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
+            <div class="component-modal-body"><p id="confirmModalMessage" style="font-size:15px;line-height:1.6;"></p></div>
+            <div class="component-modal-footer">
+                <button type="button" class="btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+                <button type="button" class="btn-agregar" id="confirmModalBtn">Aceptar</button>
             </div>
         </div>
     </div>
+    <!-- Alert Modal -->
+    <div id="alertModal" class="component-modal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="alertModalTitle">Aviso</h2>
+                <button type="button" class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="component-modal-body"><p id="alertModalMessage" style="font-size:15px;line-height:1.6;"></p></div>
+            <div class="component-modal-footer"><button type="button" class="btn-agregar" onclick="closeAlertModal()">Aceptar</button></div>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-    <script src="../../js/pagination.js"></script>
     <script src="../js/app.js"></script>
     <script>
-        let currentPage = 1;
-        const perPage = 15;
-        let allBienes = [];
-        let searchTimeout = null;
+        var currentPage = 1;
+        var perPage = 20;
+        var allBienes = [];
 
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            if (body.classList.contains('dark')) {
-                body.classList.remove('dark');
-                icon.className = 'fas fa-moon';
-                localStorage.setItem('inv_theme', 'light');
-            } else {
-                body.classList.add('dark');
-                icon.className = 'fas fa-sun';
-                localStorage.setItem('inv_theme', 'dark');
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof requireInvAuth === 'function') requireInvAuth();
+            loadSelects();
+            loadBienes();
+        });
+
+        function loadSelects() {
+            if (typeof InvDB === 'undefined') return;
+            InvDB.getAreas().then(function (areas) {
+                var sel = document.getElementById('id_area');
+                areas.forEach(function (a) {
+                    var o = document.createElement('option');
+                    o.value = a.id_area;
+                    o.textContent = a.nombre_area;
+                    sel.appendChild(o);
+                });
+            });
+            InvDB.getPersonal().then(function (personal) {
+                var sel = document.getElementById('id_personal');
+                personal.forEach(function (p) {
+                    var o = document.createElement('option');
+                    o.value = p.id_personal;
+                    o.textContent = p.nombre_completo;
+                    sel.appendChild(o);
+                });
+            });
+            if (InvDB.getMarcas) {
+                InvDB.getMarcas().then(function (marcas) {
+                    var sel = document.getElementById('id_marca');
+                    marcas.forEach(function (m) {
+                        var o = document.createElement('option');
+                        o.value = m.id_marca;
+                        o.textContent = m.nombre_marca;
+                        sel.appendChild(o);
+                    });
+                });
             }
-        }
-
-        (function () {
-            const saved = localStorage.getItem('inv_theme');
-            if (saved === 'dark') {
-                document.body.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
-            }
-        })();
-
-        function handleLogout() {
-            if (typeof invLogout === 'function') invLogout();
-            window.location.href = '../login.html';
-        }
-
-        function getEstatusBadge(estatus) {
-            const map = {
-                'Asignado': 'badge-success',
-                'Disponible': 'badge-info',
-                'Pendiente': 'badge-warning',
-                'Baja': 'badge-danger',
-                'En mantenimiento': 'badge-orange',
-                'En revision': 'badge-orange',
-                'Danado': 'badge-danger'
-            };
-            return `<span class="badge ${map[estatus] || 'badge-info'}">${estatus || 'N/A'}</span>`;
-        }
-
-        function debounceSearch() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                currentPage = 1;
-                loadBienes();
-            }, 300);
         }
 
         async function loadBienes() {
             try {
                 if (typeof requireInvAuth === 'function') await requireInvAuth();
-
-                const user = typeof getInvUser === 'function' ? getInvUser() : null;
-                const nameEl = document.getElementById('userName');
-                if (user && nameEl) nameEl.textContent = user.email || user.name || 'Usuario';
-
-                const search = document.getElementById('searchInput').value.trim().toLowerCase();
-                const estatus = document.getElementById('filterEstatus').value;
-
-                let data = [];
-                if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
-                    data = await InvDB.getBienes({ estatus: estatus || undefined });
-                }
-
-                if (search) {
-                    data = data.filter(b =>
-                        (b.nombre_bien || '').toLowerCase().includes(search) ||
-                        (b.marca || '').toLowerCase().includes(search) ||
-                        (b.modelo || '').toLowerCase().includes(search) ||
-                        (b.serie || '').toLowerCase().includes(search) ||
-                        (b.no_inventario || '').toLowerCase().includes(search)
-                    );
-                }
-
-                allBienes = data;
+                allBienes = await InvDB.getBienes();
                 renderBienes();
             } catch (err) {
                 console.error('Error loading bienes:', err);
-                document.getElementById('bienesTableBody').innerHTML =
-                    '<tr><td colspan="9" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error al cargar bienes</td></tr>';
             }
         }
 
         function renderBienes() {
-            const tbody = document.getElementById('bienesTableBody');
-            const total = allBienes.length;
-            const totalPages = Math.max(1, Math.ceil(total / perPage));
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            const start = (currentPage - 1) * perPage;
-            const pageData = allBienes.slice(start, start + perPage);
+            var tbody = document.getElementById('bienesBody');
+            var start = (currentPage - 1) * perPage;
+            var pageData = allBienes.slice(start, start + perPage);
 
             if (pageData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><i class="fas fa-inbox"></i> No se encontraron bienes</td></tr>';
-            } else {
-                tbody.innerHTML = pageData.map(b => `
-                    <tr>
-                        <td><strong>${b.no_inventario || 'N/A'}</strong></td>
-                        <td>${b.nombre_bien || 'N/A'}</td>
-                        <td>${b.marca || '-'}</td>
-                        <td>${b.modelo || '-'}</td>
-                        <td>${b.serie || '-'}</td>
-                        <td>${b.area_nombre || b.id_area || '-'}</td>
-                        <td>${b.personal_nombre || b.id_personal || '-'}</td>
-                        <td>${getEstatusBadge(b.estatus)}</td>
-                        <td>
-                            <div class="action-btns">
-                                <button title="Editar" onclick="editBien('${b.id}')"><i class="fas fa-pen"></i></button>
-                                <button class="btn-qr" title="Codigo QR" onclick="showQR('${b.id}', '${(b.no_inventario || '').replace(/'/g, "\\'")}')"><i class="fas fa-qrcode"></i></button>
-                                <button class="btn-del" title="Eliminar" onclick="deleteBien('${b.id}')"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-
-            renderPagination(totalPages);
-        }
-
-        function renderPagination(totalPages) {
-            const container = document.getElementById('paginationControls');
-            if (typeof renderPaginationControls === 'function') {
-                renderPaginationControls(container, currentPage, totalPages, (page) => {
-                    currentPage = page;
-                    renderBienes();
-                });
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;"><i class="fa-solid fa-inbox" style="font-size:2rem;color:var(--muted);display:block;margin-bottom:8px;"></i>No hay bienes registrados</td></tr>';
+                document.getElementById('paginacion').innerHTML = '';
                 return;
             }
 
+            tbody.innerHTML = pageData.map(function (b) {
+                var marca = '';
+                if (b.marcaRelacion) marca = b.marcaRelacion.nombre_marca;
+                else if (b.inv_marcas) marca = b.inv_marcas.nombre_marca;
+                else if (b.marca) marca = b.marca;
+                else marca = 'N/A';
+
+                var area = '';
+                if (b.area) area = b.area.nombre_area;
+                else if (b.inv_areas) area = b.inv_areas.nombre_area;
+                else area = 'Sin &aacute;rea';
+
+                var personal = '';
+                if (b.personal) personal = b.personal.nombre_completo;
+                else if (b.inv_personal) personal = b.inv_personal.nombre_completo;
+                else personal = 'Sin asignar';
+
+                return '<tr>' +
+                    '<td>' + (b.no_inventario || 'N/A') + '</td>' +
+                    '<td>' + (b.nombre_bien || '') + '</td>' +
+                    '<td>' + marca + '</td>' +
+                    '<td>' + (b.modelo || 'N/A') + '</td>' +
+                    '<td>' + (b.serie || 'N/A') + '</td>' +
+                    '<td>' + area + '</td>' +
+                    '<td><span class="estado ' + (b.estatus || '').toLowerCase() + '">' + (b.estatus || 'N/A') + '</span></td>' +
+                    '<td>' + personal + '</td>' +
+                    '<td class="acciones">' +
+                        '<button type="button" class="action-btn action-edit admin-only" title="Editar" onclick="editBien(this)" ' +
+                            'data-id="' + b.id_bien + '" ' +
+                            'data-no_inventario="' + (b.no_inventario || '') + '" ' +
+                            'data-nombre_bien="' + (b.nombre_bien || '') + '" ' +
+                            'data-id_marca="' + (b.id_marca || '') + '" ' +
+                            'data-modelo="' + (b.modelo || '') + '" ' +
+                            'data-serie="' + (b.serie || '') + '" ' +
+                            'data-valor="' + (b.valor || '') + '" ' +
+                            'data-id_area="' + (b.id_area || '') + '" ' +
+                            'data-id_personal="' + (b.id_personal || '') + '" ' +
+                            'data-estatus="' + (b.estatus || '') + '">' +
+                            '<i class="fa-solid fa-pen"></i>' +
+                        '</button>' +
+                        '<button type="button" class="action-btn action-delete admin-only" title="Eliminar" onclick="deleteBien(' + b.id_bien + ')">' +
+                            '<i class="fa-solid fa-trash"></i>' +
+                        '</button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            var totalPages = Math.max(1, Math.ceil(allBienes.length / perPage));
+            var container = document.getElementById('paginacion');
             if (totalPages <= 1) { container.innerHTML = ''; return; }
 
-            let html = '';
-            html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
-
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    html += `<button disabled>...</button>`;
+            var html = '<span>Mostrando ' + ((currentPage - 1) * perPage + 1) + '-' + Math.min(currentPage * perPage, allBienes.length) + ' de ' + allBienes.length + '</span><div class="paginas">';
+            html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goPage(' + (currentPage - 1) + ')">&laquo;</button>';
+            for (var i = 1; i <= totalPages; i++) {
+                if (totalPages > 7 && i > 3 && i < totalPages - 2 && Math.abs(i - currentPage) > 1) {
+                    if (i === 4 || i === totalPages - 3) html += '<button disabled>...</button>';
+                    continue;
                 }
+                html += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goPage(' + i + ')">' + i + '</button>';
             }
-
-            html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goPage(' + (currentPage + 1) + ')">&raquo;</button></div>';
             container.innerHTML = html;
         }
 
-        function goToPage(page) {
+        function goPage(page) {
             currentPage = page;
             renderBienes();
         }
 
-        async function loadSelects() {
-            try {
-                if (typeof InvDB !== 'undefined') {
-                    if (InvDB.getAreas) {
-                        const areas = await InvDB.getAreas();
-                        const areaSelect = document.getElementById('idArea');
-                        areas.forEach(a => {
-                            const opt = document.createElement('option');
-                            opt.value = a.id;
-                            opt.textContent = a.nombre_area || a.nombre || a.id;
-                            areaSelect.appendChild(opt);
-                        });
-                    }
+        function clearFilters() {
+            document.querySelectorAll('.column-filter').forEach(function (el) { el.value = ''; });
+            applyFilters();
+        }
 
-                    if (InvDB.getPersonal) {
-                        const personal = await InvDB.getPersonal();
-                        const perSelect = document.getElementById('idPersonal');
-                        personal.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.id;
-                            opt.textContent = p.nombre_completo || p.nombre || p.id;
-                            perSelect.appendChild(opt);
-                        });
-                    }
+        function applyFilters() {
+            var filters = {};
+            document.querySelectorAll('.column-filter').forEach(function (input) {
+                var col = parseInt(input.getAttribute('data-column'));
+                var val = input.value.trim().toLowerCase();
+                if (val) filters[col] = val;
+            });
+
+            var rows = document.querySelectorAll('#bienesBody tr');
+            rows.forEach(function (row) {
+                if (row.querySelector('td[colspan]')) return;
+                var show = true;
+                for (var col in filters) {
+                    var tds = row.querySelectorAll('td');
+                    var td = tds[parseInt(col)];
+                    var text = td ? td.textContent.trim().toLowerCase() : '';
+                    if (text.indexOf(filters[col]) === -1) { show = false; break; }
                 }
-            } catch (err) {
-                console.error('Error loading selects:', err);
-            }
+                row.style.display = show ? '' : 'none';
+            });
         }
 
-        function openModal(bien) {
-            const modal = document.getElementById('bienModal');
-            const form = document.getElementById('bienForm');
-            const title = document.getElementById('modalTitle');
-            form.reset();
+        document.querySelectorAll('.column-filter').forEach(function (input) {
+            input.addEventListener('input', applyFilters);
+            input.addEventListener('change', applyFilters);
+        });
+
+        function openModalBien() {
             document.getElementById('bienId').value = '';
-            document.getElementById('noInventario').value = '';
-
-            if (bien) {
-                title.innerHTML = '<i class="fas fa-edit"></i> Editar Bien';
-                document.getElementById('bienId').value = bien.id || '';
-                document.getElementById('noInventario').value = bien.no_inventario || '';
-                document.getElementById('nombreBien').value = bien.nombre_bien || '';
-                document.getElementById('marca').value = bien.marca || '';
-                document.getElementById('modelo').value = bien.modelo || '';
-                document.getElementById('serie').value = bien.serie || '';
-                document.getElementById('adq').value = bien.adq || bien.adquisicion || '';
-                document.getElementById('valor').value = bien.valor || '';
-                document.getElementById('idArea').value = bien.id_area || '';
-                document.getElementById('idPersonal').value = bien.id_personal || '';
-                document.getElementById('idSep').value = bien.id_sep || '';
-                document.getElementById('estatus').value = bien.estatus || 'Disponible';
-            } else {
-                title.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Bien';
-            }
-
-            modal.classList.add('show');
+            document.getElementById('formBien').reset();
+            document.getElementById('modalBienTitle').textContent = 'Agregar bien';
+            document.querySelector('#modalBien .btn-agregar').textContent = 'Guardar';
+            document.getElementById('noInventarioGroup').style.display = 'none';
+            document.getElementById('form-group-area').style.display = '';
+            document.getElementById('form-group-responsable').style.display = '';
+            document.getElementById('id_area').disabled = false;
+            document.getElementById('id_personal').disabled = false;
+            openModal('modalBien');
         }
 
-        function closeModal() {
-            document.getElementById('bienModal').classList.remove('show');
+        function editBien(btn) {
+            document.getElementById('bienId').value = btn.dataset.id;
+            document.getElementById('modalBienTitle').textContent = 'Editar bien';
+            document.querySelector('#modalBien .btn-agregar').textContent = 'Guardar cambios';
+            document.getElementById('noInventarioGroup').style.display = 'block';
+            document.getElementById('no_inventario').value = btn.dataset.no_inventario;
+            document.getElementById('nombre_bien').value = btn.dataset.nombre_bien;
+            document.getElementById('id_marca').value = btn.dataset.id_marca;
+            document.getElementById('modelo').value = btn.dataset.modelo;
+            document.getElementById('serie').value = btn.dataset.serie;
+            document.getElementById('valor').value = btn.dataset.valor;
+            document.getElementById('estatus').value = btn.dataset.estatus;
+            document.getElementById('form-group-area').style.display = 'none';
+            document.getElementById('form-group-responsable').style.display = 'none';
+            document.getElementById('id_area').disabled = true;
+            document.getElementById('id_personal').disabled = true;
+            openModal('modalBien');
         }
 
-        async function handleBienSubmit(e) {
+        function deleteBien(id) {
+            showConfirm('Enviar este bien a la papelera?', function () {
+                InvDB.deleteBien(id).then(function () {
+                    showAlert('Bien eliminado correctamente.');
+                    loadBienes();
+                }).catch(function (err) {
+                    showAlert('Error: ' + (err.message || 'No se pudo eliminar.'));
+                });
+            });
+        }
+
+        document.getElementById('formBien').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const id = document.getElementById('bienId').value;
-            const btn = document.getElementById('btnSaveBien');
-            btn.disabled = true;
-
-            const payload = {
-                nombre_bien: document.getElementById('nombreBien').value.trim(),
-                marca: document.getElementById('marca').value.trim(),
+            var id = document.getElementById('bienId').value;
+            var data = {
+                nombre_bien: document.getElementById('nombre_bien').value.trim(),
+                id_marca: document.getElementById('id_marca').value || null,
                 modelo: document.getElementById('modelo').value.trim(),
                 serie: document.getElementById('serie').value.trim(),
-                adq: document.getElementById('adq').value.trim(),
-                valor: parseFloat(document.getElementById('valor').value) || 0,
-                id_area: document.getElementById('idArea').value || null,
-                id_personal: document.getElementById('idPersonal').value || null,
-                id_sep: document.getElementById('idSep').value.trim(),
+                valor: document.getElementById('valor').value ? parseFloat(document.getElementById('valor').value) : null,
                 estatus: document.getElementById('estatus').value
             };
+            if (!id) {
+                data.id_area = document.getElementById('id_area').value || null;
+                data.id_personal = document.getElementById('id_personal').value || null;
+            }
 
             try {
-                if (typeof InvDB !== 'undefined') {
-                    if (id && InvDB.updateBien) {
-                        await InvDB.updateBien(id, payload);
-                    } else if (InvDB.createBien) {
-                        await InvDB.createBien(payload);
-                    }
+                if (id) {
+                    await InvDB.updateBien(parseInt(id), data);
+                    showAlert('Bien actualizado correctamente.');
+                } else {
+                    await InvDB.createBien(data);
+                    showAlert('Bien creado correctamente.');
                 }
-                closeModal();
-                await loadBienes();
+                closeModal('modalBien');
+                loadBienes();
             } catch (err) {
-                console.error('Error saving bien:', err);
-                alert('Error al guardar: ' + (err.message || 'Error desconocido'));
-            } finally {
-                btn.disabled = false;
+                showAlert('Error: ' + (err.message || 'No se pudo guardar.'));
             }
-        }
-
-        async function editBien(id) {
-            try {
-                let bien = null;
-                if (typeof InvDB !== 'undefined' && InvDB.getBien) {
-                    bien = await InvDB.getBien(id);
-                } else if (allBienes.length) {
-                    bien = allBienes.find(b => b.id === id);
-                }
-                if (bien) openModal(bien);
-            } catch (err) {
-                console.error('Error fetching bien:', err);
-            }
-        }
-
-        async function deleteBien(id) {
-            if (!confirm('Are you sure you want to delete this item?')) return;
-            try {
-                if (typeof InvDB !== 'undefined' && InvDB.deleteBien) {
-                    await InvDB.deleteBien(id);
-                }
-                await loadBienes();
-            } catch (err) {
-                console.error('Error deleting bien:', err);
-                alert('Error al eliminar: ' + (err.message || 'Error desconocido'));
-            }
-        }
-
-        function showQR(id, label) {
-            const modal = document.getElementById('qrModal');
-            const canvas = document.getElementById('qrCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = 250;
-            canvas.height = 250;
-            ctx.clearRect(0, 0, 250, 250);
-
-            if (typeof QRCode !== 'undefined') {
-                QRCode.toCanvas(canvas, id, { width: 250 }, (err) => {
-                    if (err) console.error(err);
-                });
-            } else {
-                ctx.fillStyle = '#f0f0f0';
-                ctx.fillRect(0, 0, 250, 250);
-                ctx.fillStyle = '#333';
-                ctx.font = '14px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('QR: ' + (label || id), 125, 125);
-                ctx.fillText('(QR library not loaded)', 125, 145);
-            }
-
-            document.getElementById('qrLabel').textContent = label || id;
-            modal.classList.add('show');
-        }
-
-        function closeQRModal() {
-            document.getElementById('qrModal').classList.remove('show');
-        }
-
-        function printQR() {
-            const canvas = document.getElementById('qrCanvas');
-            const label = document.getElementById('qrLabel').textContent;
-            const win = window.open('', '_blank');
-            win.document.write('<html><head><title>QR - ' + label + '</title></head><body style="text-align:center;padding:40px;">');
-            win.document.write('<h3>' + label + '</h3>');
-            win.document.write('<img src="' + canvas.toDataURL() + '" style="max-width:200px;">');
-            win.document.write('</body></html>');
-            win.document.close();
-            win.print();
-        }
-
-        function importCSV() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.csv';
-            input.onchange = async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                try {
-                    const text = await file.text();
-                    const lines = text.split('\n').filter(l => l.trim());
-                    if (lines.length < 2) { alert('CSV vacio o sin datos.'); return; }
-                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-                    const rows = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        const vals = lines[i].split(',');
-                        const obj = {};
-                        headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim(); });
-                        rows.push(obj);
-                    }
-                    if (typeof InvDB !== 'undefined' && InvDB.importBienes) {
-                        await InvDB.importBienes(rows);
-                        await loadBienes();
-                        alert('Importados ' + rows.length + ' bienes.');
-                    } else {
-                        alert('Funcion de importacion no disponible.');
-                    }
-                } catch (err) {
-                    console.error('CSV import error:', err);
-                    alert('Error al importar CSV: ' + err.message);
-                }
-            };
-            input.click();
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadSelects();
-            await loadBienes();
         });
     </script>
 </body>

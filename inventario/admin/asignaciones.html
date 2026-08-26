@@ -1,540 +1,104 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asignaciones - Inventario Escolar</title>
-    <link rel="stylesheet" href="../../css/admin.css">
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg: #f0f2f5;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --sidebar-bg: #ffffff;
-            --sidebar-width: 260px;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --warning: #f59e0b;
-            --info: #0ea5e9;
-        }
-
-        body.dark {
-            --primary: #4dabf7;
-            --primary-hover: #339af0;
-            --bg: #1a1a2e;
-            --surface: #16213e;
-            --text: #e4e6eb;
-            --text-muted: #adb5bd;
-            --border: #2d3748;
-            --sidebar-bg: #0f1629;
-            --danger: #fc5c65;
-            --success: #26de81;
-            --warning: #fed330;
-            --info: #4bcffa;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.15rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-header h2 i { font-size: 1.3rem; }
-
-        .sidebar-header p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 0;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-nav a:hover {
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .sidebar-nav a.active {
-            background: rgba(26, 115, 232, 0.08);
-            color: var(--primary);
-            border-left-color: var(--primary);
-            font-weight: 600;
-        }
-
-        body.dark .sidebar-nav a.active {
-            background: rgba(77, 171, 247, 0.1);
-        }
-
-        .sidebar-nav a i {
-            width: 20px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .sidebar-footer .user-info {
-            font-size: 0.85rem;
-            color: var(--text);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer .user-info i { color: var(--primary); }
-
-        .sidebar-footer .footer-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer button {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .sidebar-footer button:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .sidebar-footer .btn-logout:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .page-header h1 {
-            font-size: 1.8rem;
-            color: var(--text);
-        }
-
-        .page-header h1 i {
-            color: var(--primary);
-            margin-right: 8px;
-        }
-
-        .filters-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 220px;
-            position: relative;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 10px 14px 10px 40px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .search-box input:focus { border-color: var(--primary); }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .table-container { overflow-x: auto; }
-
-        table { width: 100%; border-collapse: collapse; }
-
-        table th, table td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.88rem;
-        }
-
-        table th {
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--bg);
-        }
-
-        table tr:hover td { background: rgba(26, 115, 232, 0.03); }
-        body.dark table tr:hover td { background: rgba(77, 171, 247, 0.05); }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .badge-success { background: rgba(22,163,74,0.12); color: #16a34a; }
-        .badge-info { background: rgba(14,165,233,0.12); color: #0ea5e9; }
-        .badge-warning { background: rgba(245,158,11,0.12); color: #d97706; }
-        .badge-danger { background: rgba(220,38,38,0.12); color: #dc2626; }
-        .badge-orange { background: rgba(249,115,22,0.12); color: #ea580c; }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover { background: var(--bg); }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover { background: var(--primary-hover); }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.82rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            display: block;
-            opacity: 0.4;
-        }
-
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .pagination button {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.88rem;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover { background: var(--bg); }
-
-        .pagination button.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 20px;
-        }
-
-        .modal-overlay.show { display: flex; }
-
-        .modal {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 560px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 32px;
-            position: relative;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .modal h2 {
-            font-size: 1.3rem;
-            color: var(--text);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal h2 i { color: var(--primary); }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover { color: var(--danger); }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        .form-group label .req { color: var(--danger); }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus { border-color: var(--primary); }
-
-        .form-group textarea { resize: vertical; min-height: 80px; }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 20px; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+<div class="contenedor">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="mainSidebar">
         <div class="sidebar-header">
-            <h2><i class="fas fa-boxes-stacked"></i> Inventario</h2>
-            <p>CBTA 15</p>
+            <div class="logo">
+                <div class="logo-copy">
+                    <h2 title="Sistema de Inventario">Sistema de Inventario</h2>
+                    <p id="userRole">Administrador</p>
+                </div>
+            </div>
         </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="bienes.html"><i class="fas fa-box-open"></i> Bienes</a>
-            <a href="personal.html"><i class="fas fa-users"></i> Personal</a>
-            <a href="areas.html"><i class="fas fa-building"></i> Areas</a>
-            <a href="asignaciones.html" class="active"><i class="fas fa-link"></i> Asignaciones</a>
-            <a href="historial.html"><i class="fas fa-clock-rotate-left"></i> Historial</a>
-            <a href="reportes.html"><i class="fas fa-file-lines"></i> Reportes</a>
-            <a href="pendientes.html"><i class="fas fa-hourglass-half"></i> Pendientes</a>
-            <a href="usuarios.html"><i class="fas fa-user-shield"></i> Usuarios</a>
+        <nav class="sidebar-menu menu" aria-label="Menu principal">
+            <a href="dashboard.html"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+            <a href="bienes.html"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
+            <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
+            <a href="areas.html"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+            <a href="asignaciones.html" class="activo"><i class="fa-solid fa-link"></i><span>Asignaciones</span></a>
+            <a href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
+            <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
+            <a href="pendientes.html"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
+            <a href="usuarios.html"><i class="fa-solid fa-user-gear"></i><span>Usuarios</span></a>
         </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Cargando...</span>
-            </div>
-            <div class="footer-actions">
-                <button onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesion">
-                    <i class="fas fa-right-from-bracket"></i> Salir
-                </button>
-            </div>
+        <div class="sidebar-footer logout">
+            <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;">
+                <i class="fa-solid fa-palette"></i>
+                <span data-theme-label>Cambiar tema</span>
+            </a>
+            <a href="../login.html" onclick="invLogout();">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar sesi&oacute;n</span>
+            </a>
         </div>
     </aside>
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1><i class="fas fa-link"></i> Asignaciones</h1>
+    <main class="contenido">
+        <div class="header">
+            <div>
+                <h2>Asignaciones de Bienes</h2>
+                <p>Administra la asignaci&oacute;n y transferencia de bienes a personal</p>
+            </div>
         </div>
 
-        <div class="filters-bar">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
+        <div class="buscador">
+            <div class="input-buscar">
+                <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="searchInput" placeholder="Buscar por nombre, No. inventario..." oninput="debounceSearch()">
             </div>
         </div>
 
-        <div class="card">
+        <section class="card">
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>No. Inventario</th>
                             <th>Bien</th>
-                            <th>Area Actual</th>
-                            <th>Personal Actual</th>
-                            <th>Estatus</th>
-                            <th>Accion</th>
+                            <th>Personal Asignado</th>
+                            <th>&Aacute;rea</th>
+                            <th>Fecha Asignaci&oacute;n</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="asignacionesTableBody">
                         <tr>
-                            <td colspan="6" class="empty-state">
-                                <i class="fas fa-link"></i>
+                            <td colspan="7" style="text-align:center;padding:40px;color:var(--muted);">
+                                <i class="fa-solid fa-link" style="display:block;font-size:2.5rem;margin-bottom:12px;"></i>
                                 Cargando asignaciones...
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="pagination" id="paginationControls"></div>
-        </div>
+            <div class="paginacion tabla-footer footer" id="paginationControls" style="display:none;"></div>
+        </section>
     </main>
+</div>
 
-    <div class="modal-overlay" id="asignacionModal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <h2><i class="fas fa-exchange-alt"></i> Asignar / Transferir</h2>
+<!-- Asignacion/Transfer Modal -->
+<div id="asignacionModal" class="component-modal">
+    <div class="component-modal-content">
+        <div class="component-modal-header">
+            <h2><i class="fa-solid fa-right-left" style="color:var(--primary);"></i> Asignar / Transferir</h2>
+            <button type="button" class="component-modal-close" onclick="closeAsignacionModal()">&times;</button>
+        </div>
+        <div class="component-modal-body">
             <form id="asignacionForm" onsubmit="handleAsignacionSubmit(event)">
                 <input type="hidden" id="bienId">
 
@@ -544,233 +108,323 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Tipo de Movimiento <span class="req">*</span></label>
+                    <label>Tipo de Movimiento <span style="color:var(--danger);">*</span></label>
                     <select id="tipoMovimiento" required>
                         <option value="">-- Seleccionar --</option>
-                        <option value="Asignacion">Asignacion</option>
+                        <option value="Asignacion">Asignaci&oacute;n</option>
                         <option value="Transferencia">Transferencia</option>
-                        <option value="Devolucion">Devolucion</option>
-                        <option value="Reasignacion">Reasignacion</option>
-                        <option value="Cambio de area">Cambio de area</option>
+                        <option value="Devolucion">Devoluci&oacute;n</option>
+                        <option value="Reasignacion">Reasignaci&oacute;n</option>
+                        <option value="Cambio de area">Cambio de &aacute;rea</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Nueva Area</label>
-                    <select id="nuevaArea">
-                        <option value="">-- Seleccionar area --</option>
-                    </select>
-                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Nueva &Aacute;rea</label>
+                        <select id="nuevaArea">
+                            <option value="">-- Seleccionar &aacute;rea --</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label>Nuevo Personal</label>
-                    <select id="nuevoPersonal">
-                        <option value="">-- Seleccionar personal --</option>
-                    </select>
+                    <div class="form-group">
+                        <label>Nuevo Personal</label>
+                        <select id="nuevoPersonal">
+                            <option value="">-- Seleccionar personal --</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label>Observaciones</label>
-                    <textarea id="observaciones" placeholder="Observaciones del movimiento..."></textarea>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveAsignacion">
-                        <i class="fas fa-save"></i> Guardar
-                    </button>
+                    <textarea id="observaciones" placeholder="Observaciones del movimiento..." style="width:100%;min-height:100px;padding:12px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface-strong);color:var(--text);font-size:15px;outline:0;resize:vertical;font-family:inherit;"></textarea>
                 </div>
             </form>
         </div>
+        <div class="component-modal-footer">
+            <button type="button" class="btn-secundario" onclick="closeAsignacionModal()">Cancelar</button>
+            <button type="button" class="btn-agregar" id="btnSaveAsignacion" onclick="handleAsignacionSubmit(event)">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
+        </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="../js/supabase.js"></script>
-    <script src="../js/db.js"></script>
-    <script src="../js/app.js"></script>
-    <script>
-        let currentPage = 1;
-        const perPage = 15;
-        let allAsignaciones = [];
-        let searchTimeout = null;
+<!-- Confirm Modal -->
+<div id="confirmModal" class="component-modal">
+    <div class="component-modal-content component-modal-sm">
+        <div class="component-modal-header">
+            <h2 id="confirmModalTitle">Confirmar</h2>
+            <button type="button" class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+        </div>
+        <div class="component-modal-body"><p id="confirmModalMessage" style="font-size:15px;line-height:1.6;"></p></div>
+        <div class="component-modal-footer">
+            <button type="button" class="btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+            <button type="button" class="btn-agregar" id="confirmModalBtn">Aceptar</button>
+        </div>
+    </div>
+</div>
 
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            if (body.classList.contains('dark')) {
-                body.classList.remove('dark');
-                icon.className = 'fas fa-moon';
-                localStorage.setItem('inv_theme', 'light');
-            } else {
-                body.classList.add('dark');
-                icon.className = 'fas fa-sun';
-                localStorage.setItem('inv_theme', 'dark');
+<!-- Alert Modal -->
+<div id="alertModal" class="component-modal">
+    <div class="component-modal-content component-modal-sm">
+        <div class="component-modal-header">
+            <h2 id="alertModalTitle">Aviso</h2>
+            <button type="button" class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+        </div>
+        <div class="component-modal-body"><p id="alertModalMessage" style="font-size:15px;line-height:1.6;"></p></div>
+        <div class="component-modal-footer"><button type="button" class="btn-agregar" onclick="closeAlertModal()">Aceptar</button></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/app.js"></script>
+<script>
+    var currentPage = 1;
+    var perPage = 15;
+    var allAsignaciones = [];
+    var allBienes = [];
+    var searchTimeout = null;
+
+    function getEstatusBadge(estatus) {
+        var map = {
+            'Asignado': 'tag asignacion',
+            'Disponible': 'tag alta',
+            'Pendiente': 'tag modificacion',
+            'En revision': 'tag modificacion',
+            'En mantenimiento': 'tag modificacion',
+            'Baja': 'tag baja',
+            'Danado': 'tag baja'
+        };
+        return '<span class="' + (map[estatus] || 'tag alta') + '">' + (estatus || 'N/A') + '</span>';
+    }
+
+    function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function () {
+            currentPage = 1;
+            loadAsignaciones();
+        }, 300);
+    }
+
+    async function loadAsignaciones() {
+        try {
+            if (typeof requireInvAuth === 'function') await requireInvAuth();
+
+            var search = document.getElementById('searchInput').value.trim().toLowerCase();
+            var data = [];
+
+            if (typeof InvDB !== 'undefined' && InvDB.getBienes) {
+                data = await InvDB.getBienes();
             }
-        }
 
-        (function () {
-            const saved = localStorage.getItem('inv_theme');
-            if (saved === 'dark') {
-                document.body.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
+            allBienes = data || [];
+
+            if (search) {
+                allBienes = allBienes.filter(function (b) {
+                    return (b.nombre_bien || '').toLowerCase().includes(search) ||
+                        (b.no_inventario || '').toLowerCase().includes(search) ||
+                        (b.marca || '').toLowerCase().includes(search) ||
+                        (b.serie || '').toLowerCase().includes(search);
+                });
             }
-        })();
 
-        function handleLogout() {
-            if (typeof invLogout === 'function') invLogout();
-            window.location.href = '../login.html';
+            allAsignaciones = allBienes.filter(function (b) {
+                return b.id_personal || b.id_area;
+            });
+
+            renderAsignaciones();
+        } catch (err) {
+            console.error('Error loading asignaciones:', err);
+            document.getElementById('asignacionesTableBody').innerHTML =
+                '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);">' +
+                '<i class="fa-solid fa-triangle-exclamation" style="display:block;font-size:2.5rem;margin-bottom:12px;"></i>' +
+                'Error al cargar asignaciones</td></tr>';
         }
+    }
 
-        function getEstatusBadge(estatus) {
-            const map = {
-                'Asignado': 'badge-success',
-                'Disponible': 'badge-info',
-                'Pendiente': 'badge-warning',
-                'Baja': 'badge-danger',
-                'En mantenimiento': 'badge-orange',
-                'En revision': 'badge-orange',
-                'Danado': 'badge-danger'
-            };
-            return `<span class="badge ${map[estatus] || 'badge-info'}">${estatus || 'N/A'}</span>`;
-        }
+    function renderAsignaciones() {
+        var tbody = document.getElementById('asignacionesTableBody');
+        var total = allAsignaciones.length;
+        var totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
 
-        function debounceSearch() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                currentPage = 1;
-                loadAsignaciones();
-            }, 300);
-        }
+        var start = (currentPage - 1) * perPage;
+        var pageData = allAsignaciones.slice(start, start + perPage);
 
-        async function loadAsignaciones() {
-            try {
-                if (typeof requireInvAuth === 'function') await requireInvAuth();
-
-                const user = typeof getInvUser === 'function' ? getInvUser() : null;
-                const nameEl = document.getElementById('userName');
-                if (user && nameEl) nameEl.textContent = user.email || user.name || 'Usuario';
-
-                const search = document.getElementById('searchInput').value.trim();
-                let result = { data: [], total: 0 };
-
-                if (typeof InvDB !== 'undefined' && InvDB.getAsignaciones) {
-                    result = await InvDB.getAsignaciones(currentPage, perPage, search || undefined);
+        if (pageData.length === 0) {
+            tbody.innerHTML =
+                '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);">' +
+                '<i class="fa-solid fa-inbox" style="display:block;font-size:2.5rem;margin-bottom:12px;"></i>' +
+                'No se encontraron asignaciones</td></tr>';
+        } else {
+            tbody.innerHTML = pageData.map(function (b) {
+                var areaNombre = '-';
+                if (b.inv_areas) {
+                    areaNombre = b.inv_areas.nombre_area || b.inv_areas.nombre || '-';
+                } else if (b.area_nombre) {
+                    areaNombre = b.area_nombre;
+                } else if (b.id_area) {
+                    areaNombre = b.id_area;
                 }
 
-                allAsignaciones = result.data || [];
-                renderAsignaciones();
-            } catch (err) {
-                console.error('Error loading asignaciones:', err);
-                document.getElementById('asignacionesTableBody').innerHTML =
-                    '<tr><td colspan="6" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error al cargar asignaciones</td></tr>';
-            }
-        }
-
-        function renderAsignaciones() {
-            const tbody = document.getElementById('asignacionesTableBody');
-
-            if (allAsignaciones.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-inbox"></i> No se encontraron asignaciones</td></tr>';
-            } else {
-                tbody.innerHTML = allAsignaciones.map(b => {
-                    const areaNombre = b.inv_areas ? b.inv_areas.nombre_area : (b.id_area || '-');
-                    let personalNombre = '-';
-                    if (b.inv_personal) {
-                        personalNombre = [b.inv_personal.nombre, b.inv_personal.apellido_paterno, b.inv_personal.apellido_materno].filter(Boolean).join(' ');
-                    }
-                    return `
-                        <tr>
-                            <td><strong>${b.no_inventario || 'N/A'}</strong></td>
-                            <td>${b.nombre_bien || 'N/A'}</td>
-                            <td>${areaNombre}</td>
-                            <td>${personalNombre}</td>
-                            <td>${getEstatusBadge(b.estatus)}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="openAsignacionModal('${b.id}', '${(b.no_inventario || '').replace(/'/g, "\\'")}')">
-                                    <i class="fas fa-exchange-alt"></i> Asignar/Transferir
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-
-            document.getElementById('paginationControls').innerHTML = '';
-        }
-
-        async function loadSelects() {
-            try {
-                if (typeof InvDB !== 'undefined') {
-                    if (InvDB.getAreas) {
-                        const result = await InvDB.getAreas();
-                        const areas = result.data || result;
-                        const areaSelect = document.getElementById('nuevaArea');
-                        areas.forEach(a => {
-                            const opt = document.createElement('option');
-                            opt.value = a.id;
-                            opt.textContent = a.nombre_area || a.nombre || a.id;
-                            areaSelect.appendChild(opt);
-                        });
-                    }
-
-                    if (InvDB.getPersonal) {
-                        const result = await InvDB.getPersonal();
-                        const personal = result.data || result;
-                        const perSelect = document.getElementById('nuevoPersonal');
-                        personal.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.id;
-                            opt.textContent = p.nombre_completo || [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ') || p.id;
-                            perSelect.appendChild(opt);
-                        });
-                    }
+                var personalNombre = '-';
+                if (b.inv_personal) {
+                    personalNombre = [b.inv_personal.nombre, b.inv_personal.apellido_paterno, b.inv_personal.apellido_materno].filter(Boolean).join(' ');
+                } else if (b.personal_nombre) {
+                    personalNombre = b.personal_nombre;
                 }
-            } catch (err) {
-                console.error('Error loading selects:', err);
+
+                var fechaAsig = b.fecha_asignacion || b.updated_at || b.created_at || '-';
+                if (fechaAsig && fechaAsig !== '-') {
+                    fechaAsig = new Date(fechaAsig).toLocaleDateString('es-MX');
+                }
+
+                var noInv = (b.no_inventario || '').replace(/'/g, "\\'");
+                var nombreBien = (b.nombre_bien || '').replace(/'/g, "\\'");
+
+                return '<tr>' +
+                    '<td><strong>' + (b.no_inventario || 'N/A') + '</strong></td>' +
+                    '<td>' + (b.nombre_bien || 'N/A') + '</td>' +
+                    '<td>' + personalNombre + '</td>' +
+                    '<td>' + areaNombre + '</td>' +
+                    '<td>' + fechaAsig + '</td>' +
+                    '<td>' + getEstatusBadge(b.estatus) + '</td>' +
+                    '<td>' +
+                    '<div class="acciones">' +
+                    '<button class="action-btn action-edit" title="Asignar/Transferir" onclick="openAsignacionModal(\'' + b.id + '\', \'' + noInv + '\')"><i class="fa-solid fa-right-left"></i></button>' +
+                    '</div>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        var container = document.getElementById('paginationControls');
+
+        if (totalPages <= 1) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'flex';
+
+        var info = '<span class="page-info">P&aacute;gina ' + currentPage + ' de ' + totalPages + '</span>';
+        var pages = '<div class="paginas">';
+
+        pages += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')"><i class="fa-solid fa-chevron-left"></i></button>';
+
+        for (var i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                pages += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                pages += '<button disabled>...</button>';
             }
         }
 
-        function openAsignacionModal(bienId, noInventario) {
-            const modal = document.getElementById('asignacionModal');
-            document.getElementById('asignacionForm').reset();
-            document.getElementById('bienId').value = bienId;
-            document.getElementById('noInventario').value = noInventario;
-            modal.classList.add('show');
+        pages += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')"><i class="fa-solid fa-chevron-right"></i></button>';
+        pages += '</div>';
+
+        container.innerHTML = info + pages;
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        renderAsignaciones();
+    }
+
+    async function loadSelects() {
+        try {
+            if (typeof InvDB !== 'undefined') {
+                if (InvDB.getAreas) {
+                    var result = await InvDB.getAreas();
+                    var areas = result.data || result;
+                    var areaSelect = document.getElementById('nuevaArea');
+                    areas.forEach(function (a) {
+                        var opt = document.createElement('option');
+                        opt.value = a.id;
+                        opt.textContent = a.nombre_area || a.nombre || a.id;
+                        areaSelect.appendChild(opt);
+                    });
+                }
+
+                if (InvDB.getPersonal) {
+                    var result = await InvDB.getPersonal();
+                    var personal = result.data || result;
+                    var perSelect = document.getElementById('nuevoPersonal');
+                    personal.forEach(function (p) {
+                        var opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.nombre_completo || [p.nombre, p.apellido_paterno, p.apellido_materno].filter(Boolean).join(' ') || p.id;
+                        perSelect.appendChild(opt);
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Error loading selects:', err);
+        }
+    }
+
+    function openAsignacionModal(bienId, noInventario) {
+        document.getElementById('asignacionForm').reset();
+        document.getElementById('bienId').value = bienId;
+        document.getElementById('noInventario').value = noInventario;
+        openModal('asignacionModal');
+    }
+
+    function closeAsignacionModal() {
+        closeModal('asignacionModal');
+    }
+
+    async function handleAsignacionSubmit(e) {
+        if (e) e.preventDefault();
+        var btn = document.getElementById('btnSaveAsignacion');
+        btn.disabled = true;
+
+        var bienId = document.getElementById('bienId').value;
+        var tipo = document.getElementById('tipoMovimiento').value;
+        var area = document.getElementById('nuevaArea').value || null;
+        var personal = document.getElementById('nuevoPersonal').value || null;
+        var obs = document.getElementById('observaciones').value.trim();
+
+        if (!tipo) {
+            showAlert('Seleccione un tipo de movimiento.');
+            btn.disabled = false;
+            return;
         }
 
-        function closeModal() {
-            document.getElementById('asignacionModal').classList.remove('show');
-        }
-
-        async function handleAsignacionSubmit(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSaveAsignacion');
-            btn.disabled = true;
-
-            const bienId = document.getElementById('bienId').value;
-            const tipo = document.getElementById('tipoMovimiento').value;
-            const area = document.getElementById('nuevaArea').value || null;
-            const personal = document.getElementById('nuevoPersonal').value || null;
-            const obs = document.getElementById('observaciones').value.trim();
-
+        showConfirm('Desea guardar esta asignaci\u00f3n?', async function () {
             try {
                 if (typeof InvDB !== 'undefined' && InvDB.asignarBien) {
                     await InvDB.asignarBien(bienId, tipo, area, personal, obs);
+                } else if (typeof InvDB !== 'undefined' && InvDB.updateBien) {
+                    await InvDB.updateBien(bienId, {
+                        id_area: area,
+                        id_personal: personal,
+                        estatus: personal ? 'Asignado' : 'Disponible'
+                    });
                 }
-                closeModal();
+                closeAsignacionModal();
                 await loadAsignaciones();
+                showAlert('Asignaci\u00f3n guardada correctamente.', 'Exitoso');
             } catch (err) {
                 console.error('Error saving asignacion:', err);
-                alert('Error al guardar: ' + (err.message || 'Error desconocido'));
+                showAlert('Error al guardar: ' + (err.message || 'Error desconocido'), 'Error');
             } finally {
                 btn.disabled = false;
             }
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadSelects();
-            await loadAsignaciones();
         });
-    </script>
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        await loadSelects();
+        await loadAsignaciones();
+    });
+</script>
 </body>
 </html>

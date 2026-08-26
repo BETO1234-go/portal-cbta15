@@ -3,605 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Areas - Inventario Escolar</title>
-    <link rel="stylesheet" href="../../css/admin.css">
-    <link rel="stylesheet" href="../../css/style.css">
+    <title>&Aacute;reas - Inventario Escolar</title>
+    <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg: #f0f2f5;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --sidebar-bg: #ffffff;
-            --sidebar-width: 260px;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --warning: #f59e0b;
-            --info: #0ea5e9;
-        }
-
-        body.dark {
-            --primary: #4dabf7;
-            --primary-hover: #339af0;
-            --bg: #1a1a2e;
-            --surface: #16213e;
-            --text: #e4e6eb;
-            --text-muted: #adb5bd;
-            --border: #2d3748;
-            --sidebar-bg: #0f1629;
-            --danger: #fc5c65;
-            --success: #26de81;
-            --warning: #fed330;
-            --info: #4bcffa;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.15rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-header h2 i { font-size: 1.3rem; }
-
-        .sidebar-header p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 0;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-nav a:hover {
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .sidebar-nav a.active {
-            background: rgba(26, 115, 232, 0.08);
-            color: var(--primary);
-            border-left-color: var(--primary);
-            font-weight: 600;
-        }
-
-        body.dark .sidebar-nav a.active {
-            background: rgba(77, 171, 247, 0.1);
-        }
-
-        .sidebar-nav a i {
-            width: 20px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .sidebar-footer .user-info {
-            font-size: 0.85rem;
-            color: var(--text);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer .user-info i { color: var(--primary); }
-
-        .sidebar-footer .footer-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer button {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .sidebar-footer button:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .sidebar-footer .btn-logout:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .page-header h1 {
-            font-size: 1.8rem;
-            color: var(--text);
-        }
-
-        .page-header h1 i {
-            color: var(--primary);
-            margin-right: 8px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover { background: var(--bg); }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover { background: var(--primary-hover); }
-
-        .btn-danger {
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .btn-danger:hover {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .filters-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 220px;
-            position: relative;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 10px 14px 10px 40px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .search-box input:focus { border-color: var(--primary); }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .table-container { overflow-x: auto; }
-
-        table { width: 100%; border-collapse: collapse; }
-
-        table th, table td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.88rem;
-        }
-
-        table th {
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--bg);
-        }
-
-        table tr:hover td { background: rgba(26, 115, 232, 0.03); }
-        body.dark table tr:hover td { background: rgba(77, 171, 247, 0.05); }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .badge-success { background: rgba(22,163,74,0.12); color: #16a34a; }
-        .badge-danger { background: rgba(220,38,38,0.12); color: #dc2626; }
-
-        .action-btns { display: flex; gap: 6px; }
-
-        .action-btns button {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .action-btns button:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .action-btns button.btn-del:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .pagination button {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.88rem;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover { background: var(--bg); }
-
-        .pagination button.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        .empty-state {
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            display: block;
-            opacity: 0.4;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 20px;
-        }
-
-        .modal-overlay.show { display: flex; }
-
-        .modal {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 520px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 32px;
-            position: relative;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .modal h2 {
-            font-size: 1.3rem;
-            color: var(--text);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal h2 i { color: var(--primary); }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover { color: var(--danger); }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        .form-group label .req { color: var(--danger); }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus { border-color: var(--primary); }
-
-        .form-group textarea { resize: vertical; min-height: 80px; }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 20px; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fas fa-boxes-stacked"></i> Inventario</h2>
-            <p>CBTA 15</p>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="bienes.html"><i class="fas fa-box-open"></i> Bienes</a>
-            <a href="personal.html"><i class="fas fa-users"></i> Personal</a>
-            <a href="areas.html" class="active"><i class="fas fa-building"></i> Areas</a>
-            <a href="asignaciones.html"><i class="fas fa-link"></i> Asignaciones</a>
-            <a href="historial.html"><i class="fas fa-clock-rotate-left"></i> Historial</a>
-            <a href="reportes.html"><i class="fas fa-file-lines"></i> Reportes</a>
-            <a href="pendientes.html"><i class="fas fa-hourglass-half"></i> Pendientes</a>
-            <a href="usuarios.html"><i class="fas fa-user-shield"></i> Usuarios</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Cargando...</span>
+    <div class="contenedor">
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Sistema de Inventario">Sistema de Inventario</h2>
+                        <p id="userRole">Administrador</p>
+                    </div>
+                </div>
             </div>
-            <div class="footer-actions">
-                <button onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesion">
-                    <i class="fas fa-right-from-bracket"></i> Salir
-                </button>
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="dashboard.html"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <a href="bienes.html"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
+                <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
+                <a href="areas.html" class="activo"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+                <a href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
+                <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
+                <a href="pendientes.html"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
+                <a href="usuarios.html"><i class="fa-solid fa-user-gear"></i><span>Usuarios</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i>
+                    <span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="../login.html" onclick="invLogout();" style="display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar sesi&oacute;n</span>
+                </a>
             </div>
-        </div>
-    </aside>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Abrir menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1><i class="fas fa-building"></i> Areas</h1>
-            <div class="header-actions">
-                <button class="btn btn-primary admin-only" onclick="openModal()">
-                    <i class="fas fa-plus"></i> Nueva Area
-                </button>
+        <main class="contenido">
+            <div class="header">
+                <div>
+                    <h1>&Aacute;reas</h1>
+                    <p>Administra las &aacute;reas del instituto</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-agregar admin-only" onclick="openModal()">
+                        <i class="fa-solid fa-plus"></i> Nueva &aacute;rea
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="filters-bar">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Buscar area..." oninput="debounceSearch()">
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="table-container">
+            <div class="tabla-contenedor">
                 <table>
                     <thead>
                         <tr>
-                            <th>Nombre Area</th>
-                            <th>Descripcion</th>
-                            <th>Estatus</th>
-                            <th>Accion</th>
+                            <th>Nombre del &Aacute;rea</th>
+                            <th>Descripci&oacute;n</th>
+                            <th>Encargado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="areasTableBody">
+                    <tbody id="areasBody">
                         <tr>
-                            <td colspan="4" class="empty-state">
-                                <i class="fas fa-building"></i>
-                                Cargando areas...
+                            <td colspan="4" class="empty-state" style="text-align:center;padding:40px 20px;">
+                                <i class="fa-solid fa-building" style="font-size:2.5rem;margin-bottom:12px;display:block;color:var(--muted);"></i>
+                                <span style="color:var(--muted);">Cargando &aacute;reas...</span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="pagination" id="paginationControls"></div>
+
+            <div class="paginacion" id="paginationControls" style="padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--table-border);"></div>
+        </main>
+    </div>
+
+    <div class="component-modal" id="areaModal">
+        <div class="component-modal-content">
+            <div class="component-modal-header">
+                <h2 id="modalTitle"><i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:8px;"></i> Nueva &Aacute;rea</h2>
+                <button class="component-modal-close" onclick="closeModal('areaModal')">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <form id="areaForm" onsubmit="handleAreaSubmit(event)">
+                    <input type="hidden" id="areaId">
+
+                    <div class="form-group">
+                        <label>Nombre del &Aacute;rea <span style="color:var(--danger);">*</span></label>
+                        <input type="text" id="nombreArea" required placeholder="Ej. Direcci&oacute;n, Cocina, Laboratorio">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripci&oacute;n</label>
+                        <textarea id="descripcion" rows="3" placeholder="Descripci&oacute;n del &aacute;rea..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Encargado</label>
+                        <input type="text" id="encargado" placeholder="Nombre del encargado">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estatus</label>
+                        <select id="estatus">
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div class="component-modal-footer">
+                        <button type="button" class="btn-secundario" onclick="closeModal('areaModal')">Cancelar</button>
+                        <button type="submit" class="btn-agregar" id="btnSaveArea">
+                            <i class="fa-solid fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </main>
+    </div>
 
-    <div class="modal-overlay" id="areaModal">
-        <div class="modal">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <h2 id="modalTitle"><i class="fas fa-plus-circle"></i> Nueva Area</h2>
-            <form id="areaForm" onsubmit="handleAreaSubmit(event)">
-                <input type="hidden" id="areaId">
+    <div class="component-modal component-modal-sm" id="confirmModal">
+        <div class="component-modal-content">
+            <div class="component-modal-header">
+                <h2 id="confirmModalTitle"><i class="fa-solid fa-circle-question" style="color:var(--warning);margin-right:8px;"></i> Confirmar</h2>
+                <button class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="confirmModalMessage" style="color:var(--text);font-size:15px;"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-agregar" id="confirmModalBtn" style="background:var(--danger);border-color:var(--danger);">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
-                <div class="form-group">
-                    <label>Nombre del Area <span class="req">*</span></label>
-                    <input type="text" id="nombreArea" required placeholder="Ej. Direccion, Cocina, Laboratorio">
-                </div>
-
-                <div class="form-group">
-                    <label>Descripcion</label>
-                    <textarea id="descripcion" placeholder="Descripcion del area..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Estatus</label>
-                    <select id="estatus">
-                        <option value="Activo">Activo</option>
-                        <option value="Inactivo">Inactivo</option>
-                    </select>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveArea">
-                        <i class="fas fa-save"></i> Guardar
-                    </button>
-                </div>
-            </form>
+    <div class="component-modal component-modal-sm" id="alertModal">
+        <div class="component-modal-content">
+            <div class="component-modal-header">
+                <h2 id="alertModalTitle"><i class="fa-solid fa-circle-info" style="color:var(--primary);margin-right:8px;"></i> Aviso</h2>
+                <button class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="alertModalMessage" style="color:var(--text);font-size:15px;"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn-agregar" onclick="closeAlertModal()">Aceptar</button>
+            </div>
         </div>
     </div>
 
@@ -610,41 +163,14 @@
     <script src="../js/db.js"></script>
     <script src="../js/app.js"></script>
     <script>
-        let currentPage = 1;
-        const perPage = 15;
-        let allAreas = [];
-        let searchTimeout = null;
-
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            if (body.classList.contains('dark')) {
-                body.classList.remove('dark');
-                icon.className = 'fas fa-moon';
-                localStorage.setItem('inv_theme', 'light');
-            } else {
-                body.classList.add('dark');
-                icon.className = 'fas fa-sun';
-                localStorage.setItem('inv_theme', 'dark');
-            }
-        }
-
-        (function () {
-            const saved = localStorage.getItem('inv_theme');
-            if (saved === 'dark') {
-                document.body.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
-            }
-        })();
-
-        function handleLogout() {
-            if (typeof invLogout === 'function') invLogout();
-            window.location.href = '../login.html';
-        }
+        var currentPage = 1;
+        var perPage = 15;
+        var allAreas = [];
+        var searchTimeout = null;
 
         function debounceSearch() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
+            searchTimeout = setTimeout(function () {
                 currentPage = 1;
                 loadAreas();
             }, 300);
@@ -652,89 +178,153 @@
 
         async function loadAreas() {
             try {
-                if (typeof requireInvAuth === 'function') await requireInvAuth();
+                if (typeof requireInvAuth === 'function') {
+                    await requireInvAuth();
+                }
 
-                const user = typeof getInvUser === 'function' ? getInvUser() : null;
-                const nameEl = document.getElementById('userName');
-                if (user && nameEl) nameEl.textContent = user.email || user.name || 'Usuario';
-
-                const search = document.getElementById('searchInput').value.trim();
-                let result = { data: [], total: 0 };
+                var result = { data: [], total: 0 };
 
                 if (typeof InvDB !== 'undefined' && InvDB.getAreas) {
-                    result = await InvDB.getAreas(currentPage, perPage, search || undefined);
+                    result = await InvDB.getAreas(currentPage, perPage);
                 }
 
                 allAreas = result.data || [];
                 renderAreas();
             } catch (err) {
                 console.error('Error loading areas:', err);
-                document.getElementById('areasTableBody').innerHTML =
-                    '<tr><td colspan="4" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error al cargar areas</td></tr>';
+                document.getElementById('areasBody').innerHTML =
+                    '<tr><td colspan="4" class="empty-state" style="text-align:center;padding:40px 20px;">' +
+                    '<i class="fa-solid fa-exclamation-triangle" style="font-size:2.5rem;margin-bottom:12px;display:block;color:var(--danger);"></i>' +
+                    '<span style="color:var(--muted);">Error al cargar &aacute;reas</span></td></tr>';
             }
         }
 
         function renderAreas() {
-            const tbody = document.getElementById('areasTableBody');
+            var tbody = document.getElementById('areasBody');
 
             if (allAreas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty-state"><i class="fas fa-inbox"></i> No se encontraron areas</td></tr>';
+                tbody.innerHTML =
+                    '<tr><td colspan="4" class="empty-state" style="text-align:center;padding:40px 20px;">' +
+                    '<i class="fa-solid fa-inbox" style="font-size:2.5rem;margin-bottom:12px;display:block;color:var(--muted);"></i>' +
+                    '<span style="color:var(--muted);">No se encontraron &aacute;reas</span></td></tr>';
             } else {
-                tbody.innerHTML = allAreas.map(a => {
-                    const estatus = a.estatus || 'Activo';
-                    const badgeClass = estatus === 'Activo' ? 'badge-success' : 'badge-danger';
-                    return `
-                        <tr>
-                            <td><strong>${a.nombre_area || a.nombre || 'N/A'}</strong></td>
-                            <td>${a.descripcion || '-'}</td>
-                            <td><span class="badge ${badgeClass}">${estatus}</span></td>
-                            <td>
-                                <div class="action-btns">
-                                    <button title="Editar" onclick="editArea('${a.id}')"><i class="fas fa-pen"></i></button>
-                                    <button class="btn-del" title="Eliminar" onclick="deleteArea('${a.id}')"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                tbody.innerHTML = allAreas.map(function (a) {
+                    var estatus = a.estatus || 'Activo';
+                    var badgeClass = estatus === 'Activo' ? 'component-badge-success' : 'component-badge-warning';
+                    var encargado = a.encargado || a.responsable || '-';
+                    return '<tr>' +
+                        '<td><strong>' + (a.nombre_area || a.nombre || 'N/A') + '</strong></td>' +
+                        '<td>' + (a.descripcion || '-') + '</td>' +
+                        '<td>' + encargado + '</td>' +
+                        '<td class="acciones">' +
+                            '<div class="acciones" style="display:flex;gap:4px;justify-content:center;flex-wrap:nowrap;">' +
+                                '<button class="action-btn action-edit" title="Editar" onclick="editArea(\'' + a.id + '\')"><i class="fa-solid fa-pen"></i></button>' +
+                                '<button class="action-btn action-danger" title="Eliminar" onclick="confirmDeleteArea(\'' + a.id + '\')"><i class="fa-solid fa-trash"></i></button>' +
+                            '</div>' +
+                        '</td>' +
+                    '</tr>';
                 }).join('');
             }
 
-            document.getElementById('paginationControls').innerHTML = '';
+            renderPagination();
+        }
+
+        function renderPagination() {
+            var container = document.getElementById('paginationControls');
+            var total = allAreas.length;
+            var totalPages = Math.ceil(total / perPage) || 1;
+
+            var html = '<span style="color:var(--muted);font-size:14px;">P&aacute;gina ' + currentPage + ' de ' + totalPages + '</span>';
+            html += '<div class="paginas">';
+
+            html += '<button onclick="goToPage(' + (currentPage - 1) + ')"' + (currentPage <= 1 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-left"></i></button>';
+
+            for (var i = 1; i <= totalPages; i++) {
+                if (totalPages <= 7 || Math.abs(i - currentPage) <= 1 || i === 1 || i === totalPages) {
+                    html += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+                } else if (i === 2 && currentPage > 4) {
+                    html += '<button disabled>...</button>';
+                } else if (i === totalPages - 1 && currentPage < totalPages - 3) {
+                    html += '<button disabled>...</button>';
+                }
+            }
+
+            html += '<button onclick="goToPage(' + (currentPage + 1) + ')"' + (currentPage >= totalPages ? ' disabled' : '') + '><i class="fa-solid fa-chevron-right"></i></button>';
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            var total = allAreas.length;
+            var totalPages = Math.ceil(total / perPage) || 1;
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderAreas();
+            renderPagination();
         }
 
         function openModal(area) {
-            const modal = document.getElementById('areaModal');
-            const form = document.getElementById('areaForm');
-            const title = document.getElementById('modalTitle');
+            var form = document.getElementById('areaForm');
+            var title = document.getElementById('modalTitle');
             form.reset();
             document.getElementById('areaId').value = '';
 
             if (area) {
-                title.innerHTML = '<i class="fas fa-edit"></i> Editar Area';
+                title.innerHTML = '<i class="fa-solid fa-pen" style="color:var(--primary);margin-right:8px;"></i> Editar &Aacute;rea';
                 document.getElementById('areaId').value = area.id || '';
                 document.getElementById('nombreArea').value = area.nombre_area || area.nombre || '';
                 document.getElementById('descripcion').value = area.descripcion || '';
+                document.getElementById('encargado').value = area.encargado || area.responsable || '';
                 document.getElementById('estatus').value = area.estatus || 'Activo';
             } else {
-                title.innerHTML = '<i class="fas fa-plus-circle"></i> Nueva Area';
+                title.innerHTML = '<i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:8px;"></i> Nueva &Aacute;rea';
             }
 
-            modal.classList.add('show');
+            openModalById('areaModal');
         }
 
-        function closeModal() {
-            document.getElementById('areaModal').classList.remove('show');
+        function openModalById(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.add('show');
+        }
+
+        function editArea(id) {
+            var area = allAreas.find(function (a) { return a.id === id; });
+            if (area) {
+                openModal(area);
+            }
+        }
+
+        function confirmDeleteArea(id) {
+            showConfirm('\u00BFEst\u00E1s seguro de que deseas eliminar esta \u00E1rea? Esta acci\u00F3n no se puede deshacer.', function () {
+                deleteArea(id);
+            }, 'Eliminar \u00E1rea');
+        }
+
+        async function deleteArea(id) {
+            try {
+                if (typeof InvDB !== 'undefined' && InvDB.deleteArea) {
+                    await InvDB.deleteArea(id);
+                }
+                showAlert('\u00E1rea eliminada correctamente.', '\u00C9xito');
+                await loadAreas();
+            } catch (err) {
+                console.error('Error deleting area:', err);
+                showAlert('Error al eliminar: ' + (err.message || 'Error desconocido'), 'Error');
+            }
         }
 
         async function handleAreaSubmit(e) {
             e.preventDefault();
-            const id = document.getElementById('areaId').value;
-            const btn = document.getElementById('btnSaveArea');
+            var id = document.getElementById('areaId').value;
+            var btn = document.getElementById('btnSaveArea');
             btn.disabled = true;
 
-            const payload = {
+            var payload = {
                 nombre_area: document.getElementById('nombreArea').value.trim(),
                 descripcion: document.getElementById('descripcion').value.trim(),
+                encargado: document.getElementById('encargado').value.trim(),
                 estatus: document.getElementById('estatus').value
             };
 
@@ -746,35 +336,14 @@
                         await InvDB.createArea(payload);
                     }
                 }
-                closeModal();
+                closeModal('areaModal');
+                showAlert(id ? '\u00C1rea actualizada correctamente.' : '\u00C1rea creada correctamente.', '\u00C9xito');
                 await loadAreas();
             } catch (err) {
                 console.error('Error saving area:', err);
-                alert('Error al guardar: ' + (err.message || 'Error desconocido'));
+                showAlert('Error al guardar: ' + (err.message || 'Error desconocido'), 'Error');
             } finally {
                 btn.disabled = false;
-            }
-        }
-
-        async function editArea(id) {
-            try {
-                let area = allAreas.find(a => a.id === id);
-                if (area) openModal(area);
-            } catch (err) {
-                console.error('Error fetching area:', err);
-            }
-        }
-
-        async function deleteArea(id) {
-            if (!confirm('Are you sure you want to delete this area?')) return;
-            try {
-                if (typeof InvDB !== 'undefined' && InvDB.deleteArea) {
-                    await InvDB.deleteArea(id);
-                }
-                await loadAreas();
-            } catch (err) {
-                console.error('Error deleting area:', err);
-                alert('Error al eliminar: ' + (err.message || 'Error desconocido'));
             }
         }
 

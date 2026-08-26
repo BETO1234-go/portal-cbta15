@@ -4,470 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial - Inventario Escolar</title>
-    <link rel="stylesheet" href="../../css/admin.css">
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --primary-hover: #1557b0;
-            --bg: #f0f2f5;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --sidebar-bg: #ffffff;
-            --sidebar-width: 260px;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --warning: #f59e0b;
-            --info: #0ea5e9;
-        }
-
-        body.dark {
-            --primary: #4dabf7;
-            --primary-hover: #339af0;
-            --bg: #1a1a2e;
-            --surface: #16213e;
-            --text: #e4e6eb;
-            --text-muted: #adb5bd;
-            --border: #2d3748;
-            --sidebar-bg: #0f1629;
-            --danger: #fc5c65;
-            --success: #26de81;
-            --warning: #fed330;
-            --info: #4bcffa;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.15rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-header h2 i { font-size: 1.3rem; }
-
-        .sidebar-header p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 0;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-nav a:hover {
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .sidebar-nav a.active {
-            background: rgba(26, 115, 232, 0.08);
-            color: var(--primary);
-            border-left-color: var(--primary);
-            font-weight: 600;
-        }
-
-        body.dark .sidebar-nav a.active {
-            background: rgba(77, 171, 247, 0.1);
-        }
-
-        .sidebar-nav a i {
-            width: 20px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        .sidebar-footer {
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
-        }
-
-        .sidebar-footer .user-info {
-            font-size: 0.85rem;
-            color: var(--text);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer .user-info i { color: var(--primary); }
-
-        .sidebar-footer .footer-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sidebar-footer button {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .sidebar-footer button:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .sidebar-footer .btn-logout:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .page-header h1 {
-            font-size: 1.8rem;
-            color: var(--text);
-        }
-
-        .page-header h1 i {
-            color: var(--primary);
-            margin-right: 8px;
-        }
-
-        .filters-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 220px;
-            position: relative;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 10px 14px 10px 40px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            transition: border 0.3s;
-        }
-
-        .search-box input:focus { border-color: var(--primary); }
-
-        .filter-select {
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.9rem;
-            outline: none;
-            min-width: 170px;
-            cursor: pointer;
-        }
-
-        .filter-select:focus { border-color: var(--primary); }
-
-        .filter-date {
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .filter-date:focus { border-color: var(--primary); }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover { background: var(--bg); }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover { background: var(--primary-hover); }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .table-container { overflow-x: auto; }
-
-        table { width: 100%; border-collapse: collapse; }
-
-        table th, table td {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.88rem;
-        }
-
-        table th {
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--bg);
-        }
-
-        table tr:hover td { background: rgba(26, 115, 232, 0.03); }
-        body.dark table tr:hover td { background: rgba(77, 171, 247, 0.05); }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .badge-info { background: rgba(14,165,233,0.12); color: #0ea5e9; }
-        .badge-success { background: rgba(22,163,74,0.12); color: #16a34a; }
-        .badge-warning { background: rgba(245,158,11,0.12); color: #d97706; }
-        .badge-danger { background: rgba(220,38,38,0.12); color: #dc2626; }
-        .badge-orange { background: rgba(249,115,22,0.12); color: #ea580c; }
-
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .pagination button {
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 0.88rem;
-            transition: all 0.2s;
-        }
-
-        .pagination button:hover { background: var(--bg); }
-
-        .pagination button.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-        .empty-state {
-            text-align: center;
-            padding: 48px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            display: block;
-            opacity: 0.4;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 20px; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fas fa-boxes-stacked"></i> Inventario</h2>
-            <p>CBTA 15</p>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="bienes.html"><i class="fas fa-box-open"></i> Bienes</a>
-            <a href="personal.html"><i class="fas fa-users"></i> Personal</a>
-            <a href="areas.html"><i class="fas fa-building"></i> Areas</a>
-            <a href="asignaciones.html"><i class="fas fa-link"></i> Asignaciones</a>
-            <a href="historial.html" class="active"><i class="fas fa-clock-rotate-left"></i> Historial</a>
-            <a href="reportes.html"><i class="fas fa-file-lines"></i> Reportes</a>
-            <a href="pendientes.html"><i class="fas fa-hourglass-half"></i> Pendientes</a>
-            <a href="usuarios.html"><i class="fas fa-user-shield"></i> Usuarios</a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="user-info" id="userInfo">
-                <i class="fas fa-user-circle"></i>
-                <span id="userName">Cargando...</span>
-            </div>
-            <div class="footer-actions">
-                <button onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesion">
-                    <i class="fas fa-right-from-bracket"></i> Salir
-                </button>
-            </div>
-        </div>
-    </aside>
+    <div class="contenedor">
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1><i class="fas fa-clock-rotate-left"></i> Historial de Movimientos</h1>
-        </div>
-
-        <div class="filters-bar">
-            <select class="filter-select" id="filterTipo" onchange="loadHistorial()">
-                <option value="">Todos los tipos</option>
-                <option value="Asignacion">Asignacion</option>
-                <option value="Transferencia">Transferencia</option>
-                <option value="Devolucion">Devolucion</option>
-                <option value="Reasignacion">Reasignacion</option>
-                <option value="Cambio de area">Cambio de area</option>
-            </select>
-            <input type="date" class="filter-date" id="fechaInicio" onchange="loadHistorial()">
-            <input type="date" class="filter-date" id="fechaFin" onchange="loadHistorial()">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Buscar en observaciones..." oninput="debounceSearch()">
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Sistema de Inventario">Sistema de Inventario</h2>
+                        <p id="userRole">Administrador</p>
+                    </div>
+                </div>
             </div>
-        </div>
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="dashboard.html"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <a href="bienes.html"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
+                <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
+                <a href="areas.html"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+                <a href="asignaciones.html"><i class="fa-solid fa-link"></i><span>Asignaciones</span></a>
+                <a href="historial.html" class="activo"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
+                <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
+                <a href="pendientes.html"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
+                <a href="usuarios.html"><i class="fa-solid fa-user-gear"></i><span>Usuarios</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i>
+                    <span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="../login.html" onclick="invLogout();" style="display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar sesi&oacute;n</span>
+                </a>
+            </div>
+        </aside>
 
-        <div class="card">
-            <div class="table-container">
+        <button class="hamburger-fixed" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Abrir menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <main class="contenido">
+
+            <div class="page-header">
+                <div>
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Historial de Movimientos</h2>
+                    <p>Registro de todos los movimientos del inventario</p>
+                </div>
+            </div>
+
+            <div class="buscador">
+                <div class="search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar en historial..." oninput="debounceSearch()">
+                </div>
+                <select class="column-filter" id="filterTipo" onchange="loadHistorial()" style="min-height:52px;padding:0 18px;">
+                    <option value="">Todos los tipos</option>
+                    <option value="Asignacion">Asignaci&oacute;n</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Devolucion">Devoluci&oacute;n</option>
+                    <option value="Reasignacion">Reasignaci&oacute;n</option>
+                    <option value="Cambio de area">Cambio de &aacute;rea</option>
+                </select>
+                <input type="date" id="fechaInicio" onchange="loadHistorial()" style="min-height:52px;padding:0 18px;" title="Fecha inicio">
+                <input type="date" id="fechaFin" onchange="loadHistorial()" style="min-height:52px;padding:0 18px;" title="Fecha fin">
+            </div>
+
+            <div class="tabla-contenedor">
                 <table>
                     <thead>
                         <tr>
                             <th>Fecha</th>
-                            <th>No. Inventario</th>
+                            <th>Tipo de Movimiento</th>
                             <th>Bien</th>
-                            <th>Tipo</th>
                             <th>Personal Anterior</th>
                             <th>Personal Nuevo</th>
-                            <th>Area Nueva</th>
+                            <th>&Aacute;rea Anterior</th>
+                            <th>&Aacute;rea Nueva</th>
                             <th>Observaciones</th>
                         </tr>
                     </thead>
                     <tbody id="historialTableBody">
                         <tr>
                             <td colspan="8" class="empty-state">
-                                <i class="fas fa-clock-rotate-left"></i>
+                                <i class="fa-solid fa-clock-rotate-left"></i>
                                 Cargando historial...
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="pagination" id="paginationControls"></div>
+
+            <div class="paginacion" id="paginationControls"></div>
+
+        </main>
+    </div>
+
+    <div class="component-modal" id="confirmModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="confirmModalTitle"><i class="fa-solid fa-circle-question"></i> Confirmar</h2>
+                <button class="component-modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="confirmModalMessage">Esta acci&oacute;n no se puede deshacer. &iquest;Desea continuar?</p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn btn-secundario" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn btn-agregar" id="confirmModalBtn" onclick="confirmModalAction()">Confirmar</button>
+            </div>
         </div>
-    </main>
+    </div>
+
+    <div class="component-modal" id="alertModal">
+        <div class="component-modal-content component-modal-sm">
+            <div class="component-modal-header">
+                <h2 id="alertModalTitle"><i class="fa-solid fa-circle-info"></i> Aviso</h2>
+                <button class="component-modal-close" onclick="closeAlertModal()">&times;</button>
+            </div>
+            <div class="component-modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="component-modal-footer">
+                <button class="btn btn-agregar" onclick="closeAlertModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="../js/supabase.js"></script>
@@ -478,48 +145,84 @@
         const perPage = 20;
         let allHistorial = [];
         let searchTimeout = null;
+        let confirmCallback = null;
 
         function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            if (body.classList.contains('dark')) {
-                body.classList.remove('dark');
-                icon.className = 'fas fa-moon';
+            const root = document.documentElement;
+            const label = document.querySelector('[data-theme-label]');
+            if (root.getAttribute('data-theme') === 'dark') {
+                root.setAttribute('data-theme', 'light');
+                if (label) label.textContent = 'Cambiar tema';
                 localStorage.setItem('inv_theme', 'light');
             } else {
-                body.classList.add('dark');
-                icon.className = 'fas fa-sun';
+                root.setAttribute('data-theme', 'dark');
+                if (label) label.textContent = 'Cambiar tema';
                 localStorage.setItem('inv_theme', 'dark');
             }
         }
 
         (function () {
             const saved = localStorage.getItem('inv_theme');
-            if (saved === 'dark') {
-                document.body.classList.add('dark');
-                document.getElementById('themeIcon').className = 'fas fa-sun';
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
             }
         })();
 
-        function handleLogout() {
-            if (typeof invLogout === 'function') invLogout();
-            window.location.href = '../login.html';
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const body = document.body;
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+                body.classList.remove('sidebar-open');
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('show');
+                body.classList.add('sidebar-open');
+            }
+        }
+
+        function showConfirmModal(message, callback) {
+            document.getElementById('confirmModalMessage').innerHTML = message;
+            confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        function confirmModalAction() {
+            if (typeof confirmCallback === 'function') confirmCallback();
+            closeConfirmModal();
+        }
+
+        function showAlertModal(title, message) {
+            document.getElementById('alertModalTitle').innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + title;
+            document.getElementById('alertModalMessage').innerHTML = message;
+            document.getElementById('alertModal').classList.add('show');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.remove('show');
         }
 
         function getTipoBadge(tipo) {
             const map = {
-                'Asignacion': 'badge-success',
-                'Transferencia': 'badge-info',
-                'Devolucion': 'badge-warning',
-                'Reasignacion': 'badge-orange',
-                'Cambio de area': 'badge-info'
+                'Asignacion': 'tag asignacion',
+                'Transferencia': 'tag reasignacion',
+                'Devolucion': 'tag modificacion',
+                'Reasignacion': 'tag reasignacion',
+                'Cambio de area': 'tag modificacion'
             };
-            return `<span class="badge ${map[tipo] || 'badge-info'}">${tipo || 'N/A'}</span>`;
+            return '<span class="' + (map[tipo] || 'tag') + '">' + (tipo || 'N/A') + '</span>';
         }
 
         function debounceSearch() {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
+            searchTimeout = setTimeout(function () {
                 currentPage = 1;
                 loadHistorial();
             }, 300);
@@ -530,30 +233,30 @@
                 if (typeof requireInvAuth === 'function') await requireInvAuth();
 
                 const user = typeof getInvUser === 'function' ? getInvUser() : null;
-                const nameEl = document.getElementById('userName');
-                if (user && nameEl) nameEl.textContent = user.email || user.name || 'Usuario';
+                const roleEl = document.getElementById('userRole');
+                if (user && roleEl) roleEl.textContent = user.role || 'Administrador';
 
                 const filters = {};
-                const tipo = document.getElementById('filterTipo').value;
-                const fechaInicio = document.getElementById('fechaInicio').value;
-                const fechaFin = document.getElementById('fechaFin').value;
+                var tipo = document.getElementById('filterTipo').value;
+                var fechaInicio = document.getElementById('fechaInicio').value;
+                var fechaFin = document.getElementById('fechaFin').value;
                 if (tipo) filters.tipo = tipo;
                 if (fechaInicio) filters.fechaInicio = fechaInicio;
                 if (fechaFin) filters.fechaFin = fechaFin;
 
-                let result = { data: [], total: 0 };
+                var result = { data: [], total: 0 };
                 if (typeof InvDB !== 'undefined' && InvDB.getHistorial) {
                     result = await InvDB.getHistorial(currentPage, perPage, Object.keys(filters).length ? filters : undefined);
                 }
 
-                let data = result.data || [];
-                const search = document.getElementById('searchInput').value.trim().toLowerCase();
+                var data = result.data || [];
+                var search = document.getElementById('searchInput').value.trim().toLowerCase();
                 if (search) {
-                    data = data.filter(m =>
-                        (m.observaciones || '').toLowerCase().includes(search) ||
-                        (m.no_inventario || '').toLowerCase().includes(search) ||
-                        (m.nombre_bien || '').toLowerCase().includes(search)
-                    );
+                    data = data.filter(function (m) {
+                        return (m.observaciones || '').toLowerCase().includes(search) ||
+                            (m.no_inventario || '').toLowerCase().includes(search) ||
+                            (m.nombre_bien || '').toLowerCase().includes(search);
+                    });
                 }
 
                 allHistorial = data;
@@ -561,27 +264,35 @@
             } catch (err) {
                 console.error('Error loading historial:', err);
                 document.getElementById('historialTableBody').innerHTML =
-                    '<tr><td colspan="8" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Error al cargar historial</td></tr>';
+                    '<tr><td colspan="8" class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> Error al cargar historial</td></tr>';
             }
         }
 
         function renderHistorial() {
-            const tbody = document.getElementById('historialTableBody');
+            var tbody = document.getElementById('historialTableBody');
 
             if (allHistorial.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i> No se encontraron movimientos</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fa-solid fa-inbox"></i> No se encontraron movimientos</td></tr>';
             } else {
-                tbody.innerHTML = allHistorial.map(m => {
-                    const fecha = m.fecha_movimiento ? new Date(m.fecha_movimiento).toLocaleDateString('es-MX') : '-';
-                    const bienNombre = m.inv_bienes ? m.inv_bienes.nombre_bien : (m.nombre_bien || '-');
-                    const noInventario = m.inv_bienes ? m.inv_bienes.no_inventario : (m.no_inventario || '-');
+                tbody.innerHTML = allHistorial.map(function (m) {
+                    var fecha = m.fecha_movimiento ? new Date(m.fecha_movimiento).toLocaleDateString('es-MX') : '-';
 
-                    let personalAnterior = '-';
+                    var bienNombre = '-';
+                    var noInventario = '-';
+                    if (m.inv_bienes) {
+                        bienNombre = m.inv_bienes.nombre_bien || '-';
+                        noInventario = m.inv_bienes.no_inventario || '-';
+                    } else if (m.nombre_bien) {
+                        bienNombre = m.nombre_bien;
+                        noInventario = m.no_inventario || '-';
+                    }
+
+                    var personalAnterior = '-';
                     if (m.inv_personal && m.inv_personal.nombre) {
                         personalAnterior = [m.inv_personal.nombre, m.inv_personal.apellido_paterno].filter(Boolean).join(' ');
                     }
 
-                    let personalNuevo = '-';
+                    var personalNuevo = '-';
                     if (m.id_personal_nuevo) {
                         if (m.personal_nuevo) {
                             personalNuevo = [m.personal_nuevo.nombre, m.personal_nuevo.apellido_paterno].filter(Boolean).join(' ');
@@ -590,49 +301,55 @@
                         }
                     }
 
-                    let areaNueva = '-';
+                    var areaAnterior = '-';
+                    if (m.area_anterior) {
+                        areaAnterior = m.area_anterior.nombre_area || m.area_anterior;
+                    } else if (m.id_area_anterior) {
+                        areaAnterior = m.id_area_anterior;
+                    }
+
+                    var areaNueva = '-';
                     if (m.area_nueva) {
                         areaNueva = m.area_nueva.nombre_area || m.area_nueva;
                     } else if (m.id_area_nueva) {
                         areaNueva = m.id_area_nueva;
                     }
 
-                    return `
-                        <tr>
-                            <td>${fecha}</td>
-                            <td><strong>${noInventario}</strong></td>
-                            <td>${bienNombre}</td>
-                            <td>${getTipoBadge(m.tipo_movimiento)}</td>
-                            <td>${personalAnterior}</td>
-                            <td>${personalNuevo}</td>
-                            <td>${areaNueva}</td>
-                            <td>${m.observaciones || '-'}</td>
-                        </tr>
-                    `;
+                    return '<tr>' +
+                        '<td>' + fecha + '</td>' +
+                        '<td>' + getTipoBadge(m.tipo_movimiento) + '</td>' +
+                        '<td>' + bienNombre + '</td>' +
+                        '<td>' + personalAnterior + '</td>' +
+                        '<td>' + personalNuevo + '</td>' +
+                        '<td>' + areaAnterior + '</td>' +
+                        '<td>' + areaNueva + '</td>' +
+                        '<td>' + (m.observaciones || '-') + '</td>' +
+                        '</tr>';
                 }).join('');
             }
 
-            const total = allHistorial.length;
-            const totalPages = Math.max(1, Math.ceil(total / perPage));
+            var total = allHistorial.length;
+            var totalPages = Math.max(1, Math.ceil(total / perPage));
             renderPagination(totalPages);
         }
 
         function renderPagination(totalPages) {
-            const container = document.getElementById('paginationControls');
+            var container = document.getElementById('paginationControls');
             if (totalPages <= 1) { container.innerHTML = ''; return; }
 
-            let html = '';
-            html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
+            var html = '<div class="paginas">';
+            html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')"><i class="fa-solid fa-chevron-left"></i></button>';
 
-            for (let i = 1; i <= totalPages; i++) {
+            for (var i = 1; i <= totalPages; i++) {
                 if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                    html += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
                 } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    html += `<button disabled>...</button>`;
+                    html += '<button disabled>...</button>';
                 }
             }
 
-            html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')"><i class="fa-solid fa-chevron-right"></i></button>';
+            html += '</div>';
             container.innerHTML = html;
         }
 
