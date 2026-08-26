@@ -400,6 +400,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -602,56 +603,36 @@
     </div>
 </div>
 
-<script src="../js/app.js">
-    <script src="../js/supabase.js"></script>
-    <script src="../js/db.js"></script></script>
+<script src="../js/app.js"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/horarios.js"></script>
 <script>
     /* ==========================================================
-       HORARIOS - Generador de Horarios
-       Static version - routes replaced with placeholders
+       HORARIOS - Generador de Horarios (Supabase)
        ========================================================== */
 
-    const API_CATALOGOS = '#API_CATALOGOS';
-    const API_GENERAR   = '#API_GENERAR';
-    const API_ELIMINAR  = '#API_ELIMINAR';
-    const API_CARGAR    = '#API_CARGAR';
-    const API_LIMPIAR   = '#API_LIMPIAR';
-    const API_PDF       = '#API_PDF';
+    var catalogos = { maestros: [], grados: [], grupos: [], materias: [] };
+    var horariosData = [];
+    var horarios = {};
+    var modoActual = 'docente';
+    var selectedDocente = null;
+    var selectedGrado = null;
+    var selectedGrupo = null;
+    var selectedMateria = null;
 
-    let catalogos = {
-        docentes: [],
-        grupos: [],
-        materias: []
-    };
-    let horarios = {};
-    let modoActual = 'docente';
-    let selectedDocente = null;
-    let selectedGrado = null;
-    let selectedGrupo = null;
-    let selectedMateria = null;
-
-    const horasBase = [
-        '07:00 - 07:50',
-        '07:50 - 08:40',
-        '08:40 - 09:30',
-        '09:30 - 10:20',
-        '10:20 - 11:10',
-        '11:10 - 12:00',
-        '12:00 - 12:50',
-        '12:50 - 13:40',
-        '13:40 - 14:30',
-        '14:30 - 15:20'
+    var horasBase = [
+        '07:00', '08:00', '09:00', '10:00', '11:00',
+        '12:00', '13:00', '14:00', '15:00', '16:00'
     ];
-    const diasSemana = [1, 2, 3, 4, 5];
-    const diasNombres = { 1: 'Lunes', 2: 'Martes', 3: 'Miercoles', 4: 'Jueves', 5: 'Viernes' };
+    var diasSemana = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'];
+    var diasDisplay = { Lun: 'Lunes', Mar: 'Martes', Mie: 'Miercoles', Jue: 'Jueves', Vie: 'Viernes' };
 
-    /* ---- Init ---- */
     document.addEventListener('DOMContentLoaded', function() {
         cargarCatalogos();
         renderGrid();
     });
 
-    /* ---- Toast ---- */
     function showToast(msg, type) {
         type = type || 'info';
         var c = document.getElementById('toastContainer');
@@ -662,205 +643,172 @@
         setTimeout(function() { t.remove(); }, 3500);
     }
 
-    /* ---- Modals ---- */
-    function showModal(id) {
-        document.getElementById(id).classList.add('active');
-    }
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('active');
-    }
-    function showInfo(msg) {
-        document.getElementById('modalInfoText').textContent = msg;
-        showModal('modalInfo');
-    }
-    function showConfirm(msg, onConfirm) {
+    function showModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function showInfo(msg) { document.getElementById('modalInfoText').textContent = msg; showModal('modalInfo'); }
+    function showConfirm(msg, cb) {
         document.getElementById('modalConfirmText').textContent = msg;
         showModal('modalConfirm');
         var btn = document.getElementById('btnConfirmAction');
         var newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', function() {
-            closeModal('modalConfirm');
-            onConfirm();
-        });
+        newBtn.addEventListener('click', function() { closeModal('modalConfirm'); cb(); });
     }
 
-    /* ---- Catalogos ---- */
-    function cargarCatalogos() {
-        fetch(API_CATALOGOS)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                catalogos.docentes = data.docentes || [];
-                catalogos.grupos = data.grupos || [];
-                catalogos.materias = data.materias || [];
-                populateSelects();
-                cargarHorarios();
-            })
-            .catch(function(err) {
-                console.error('Error al cargar catalogos:', err);
-                showToast('Error al cargar catalogos', 'error');
-            });
+    /* ---- Catalogos from Supabase ---- */
+    async function cargarCatalogos() {
+        try {
+            var data = await DB.getCatalogosHorarios();
+            catalogos.maestros = data.maestros || [];
+            catalogos.grados = data.grados || [];
+            catalogos.grupos = data.grupos || [];
+            catalogos.materias = data.materias || [];
+            populateSelects();
+            await cargarHorariosDeSupabase();
+        } catch (e) {
+            console.error('Error catalogos:', e);
+            showToast('Error al cargar catalogos', 'error');
+        }
     }
 
     function populateSelects() {
         var selDoc = document.getElementById('selectDocente');
         var selGrado = document.getElementById('selectGrado');
-        var selGrupo = document.getElementById('selectGrupo');
         var selMat = document.getElementById('selectMateria');
 
         selDoc.innerHTML = '<option value="">-- Seleccionar docente --</option>';
-        catalogos.docentes.forEach(function(d) {
+        catalogos.maestros.forEach(function(d) {
             var o = document.createElement('option');
             o.value = d.id;
-            o.textContent = d.nombre + (d.apellido ? ' ' + d.apellido : '');
+            o.textContent = (d.nombre || '') + ' ' + (d.apellido_paterno || '') + ' ' + (d.apellido_materno || '');
             selDoc.appendChild(o);
         });
 
         selGrado.innerHTML = '<option value="">-- Seleccionar grado --</option>';
-        var gradosUnicos = [];
-        catalogos.grupos.forEach(function(g) {
-            if (gradosUnicos.indexOf(g.grado) === -1) {
-                gradosUnicos.push(g.grado);
-            }
-        });
-        gradosUnicos.sort();
-        gradosUnicos.forEach(function(gr) {
+        catalogos.grados.forEach(function(g) {
             var o = document.createElement('option');
-            o.value = gr;
-            o.textContent = gr + 'o';
+            o.value = g.id;
+            o.textContent = g.nombre;
             selGrado.appendChild(o);
         });
 
         selMat.innerHTML = '<option value="">-- Seleccionar materia --</option>';
         catalogos.materias.forEach(function(m) {
+            var grupo = catalogos.grupos.find(function(gr) { return gr.id === m.grupo_id; });
+            var grado = grupo ? catalogos.grados.find(function(gr) { return gr.id === grupo.grado_id; }) : null;
+            var label = m.clave ? m.clave + ' - ' + m.nombre : m.nombre;
+            if (grado) label += ' (' + grado.nombre + ' ' + grupo.nombre + ')';
             var o = document.createElement('option');
             o.value = m.id;
-            o.textContent = m.nombre;
+            o.textContent = label;
+            o.dataset.maestro_id = m.maestro_id;
+            o.dataset.grupo_id = m.grupo_id;
             selMat.appendChild(o);
         });
 
         updateSummary();
     }
 
-    /* ---- Horarios ---- */
-    function cargarHorarios() {
-        fetch(API_CARGAR)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                horarios = data.horarios || {};
-                renderGrid();
-                updateSummary();
-            })
-            .catch(function(err) {
-                console.error('Error al cargar horarios:', err);
-                showToast('Error al cargar horarios', 'error');
+    /* ---- Cargar horarios existentes de Supabase ---- */
+    async function cargarHorariosDeSupabase() {
+        try {
+            horariosData = await DB.getHorario(null, null);
+            horarios = {};
+            horariosData.forEach(function(h) {
+                var diaIdx = diasSemana.indexOf(h.dia);
+                var horaIdx = horasBase.indexOf(h.hora_inicio);
+                if (diaIdx >= 0 && horaIdx >= 0) {
+                    horarios[diaIdx + '_' + horaIdx] = h;
+                }
             });
+            renderGrid();
+            updateSummary();
+        } catch (e) {
+            console.error('Error horarios:', e);
+        }
     }
 
     /* ---- Mode ---- */
     function cambiarModo(modo) {
         modoActual = modo;
-        var grpDoc = document.getElementById('grpDocente');
-        var grpGrado = document.getElementById('grpGrado');
-        var grpGrupo = document.getElementById('grpGrupo');
-
-        if (modo === 'docente') {
-            grpDoc.style.display = '';
-            grpGrado.style.display = 'none';
-            grpGrupo.style.display = 'none';
-        } else {
-            grpDoc.style.display = 'none';
-            grpGrado.style.display = '';
-            grpGrupo.style.display = '';
-        }
-
-        selectedDocente = null;
-        selectedGrado = null;
-        selectedGrupo = null;
+        document.getElementById('grpDocente').style.display = modo === 'docente' ? '' : 'none';
+        document.getElementById('grpGrado').style.display = modo === 'grupo' ? '' : 'none';
+        document.getElementById('grpGrupo').style.display = modo === 'grupo' ? '' : 'none';
+        selectedDocente = null; selectedGrado = null; selectedGrupo = null; selectedMateria = null;
         document.getElementById('selectDocente').value = '';
         document.getElementById('selectGrado').value = '';
         document.getElementById('selectGrupo').value = '';
         document.getElementById('selectMateria').value = '';
-        selectedMateria = null;
     }
 
-    /* ---- Select handlers ---- */
     function onDocenteChange() {
         selectedDocente = document.getElementById('selectDocente').value || null;
         document.getElementById('selectMateria').value = '';
         selectedMateria = null;
     }
-
     function onGradoChange() {
         selectedGrado = document.getElementById('selectGrado').value || null;
         selectedGrupo = null;
-        document.getElementById('selectGrupo').innerHTML = '<option value="">-- Seleccionar grupo --</option>';
+        var selGrupo = document.getElementById('selectGrupo');
+        selGrupo.innerHTML = '<option value="">-- Seleccionar grupo --</option>';
         if (selectedGrado) {
             catalogos.grupos.forEach(function(g) {
-                if (String(g.grado) === String(selectedGrado)) {
+                if (String(g.grado_id) === String(selectedGrado)) {
                     var o = document.createElement('option');
                     o.value = g.id;
-                    o.textContent = g.nombre || g.grupo;
-                    document.getElementById('selectGrupo').appendChild(o);
+                    o.textContent = g.nombre;
+                    selGrupo.appendChild(o);
                 }
             });
         }
         document.getElementById('selectMateria').value = '';
         selectedMateria = null;
     }
-
     function onGrupoChange() {
         selectedGrupo = document.getElementById('selectGrupo').value || null;
         document.getElementById('selectMateria').value = '';
         selectedMateria = null;
     }
-
     function onMateriaChange() {
         selectedMateria = document.getElementById('selectMateria').value || null;
     }
 
-    /* ---- Summary ---- */
     function updateSummary() {
-        document.getElementById('cardDocentes').textContent = catalogos.docentes.length;
+        document.getElementById('cardDocentes').textContent = catalogos.maestros.length;
         document.getElementById('cardGrupos').textContent = catalogos.grupos.length;
         document.getElementById('cardMaterias').textContent = catalogos.materias.length;
-
-        var asignadas = 0;
-        var totalSlots = 0;
-        var diasHabilitados = getDiasHabilitados();
-        var horasMaxDia = parseInt(document.getElementById('horasMaxDia').value) || 6;
-
-        diasHabilitados.forEach(function(dia) {
-            for (var h = 0; h < horasMaxDia && h < horasBase.length; h++) {
-                totalSlots++;
-                var key = dia + '_' + h;
-                if (horarios[key]) {
-                    asignadas++;
-                }
-            }
-        });
-
-        document.getElementById('cardHorasAsignadas').textContent = asignadas;
-        document.getElementById('cardSinAsignar').textContent = Math.max(0, totalSlots - asignadas);
+        document.getElementById('cardHorasAsignadas').textContent = horariosData.length;
+        document.getElementById('cardSinAsignar').textContent = Math.max(0, catalogos.materias.length - horariosData.length);
     }
 
-    /* ---- Helpers ---- */
     function getDiasHabilitados() {
+        var checks = document.querySelectorAll('.day-check');
+        var diasMap = { '1': 'Lun', '2': 'Mar', '3': 'Mie', '4': 'Jue', '5': 'Vie' };
         var dias = [];
-        document.querySelectorAll('.day-check').forEach(function(cb) {
-            if (cb.checked) dias.push(parseInt(cb.value));
+        checks.forEach(function(cb) {
+            if (cb.checked && diasMap[cb.value]) dias.push(diasMap[cb.value]);
         });
         return dias;
     }
 
-    function findDocente(id) {
-        return catalogos.docentes.find(function(d) { return String(d.id) === String(id); });
+    function findMaestro(id) {
+        return catalogos.maestros.find(function(m) { return String(m.id) === String(id); });
     }
     function findMateria(id) {
         return catalogos.materias.find(function(m) { return String(m.id) === String(id); });
     }
     function findGrupo(id) {
         return catalogos.grupos.find(function(g) { return String(g.id) === String(id); });
+    }
+    function findGrado(id) {
+        return catalogos.grados.find(function(g) { return String(g.id) === String(id); });
+    }
+
+    function getGrupoLabel(grupoId) {
+        var g = findGrupo(grupoId);
+        if (!g) return '';
+        var grado = findGrado(g.grado_id);
+        return (grado ? grado.nombre + ' ' : '') + g.nombre;
     }
 
     /* ---- Render grid ---- */
@@ -872,272 +820,234 @@
 
         for (var h = 0; h < numHoras; h++) {
             var tr = document.createElement('tr');
-
             var tdHora = document.createElement('td');
             tdHora.className = 'hora-cell';
-            tdHora.textContent = horasBase[h];
+            tdHora.textContent = horasBase[h] + ' - ' + (horasBase[h + 1] || '17:00');
             tr.appendChild(tdHora);
 
-            diasSemana.forEach(function(dia) {
+            diasSemana.forEach(function(dia, diaIdx) {
                 var td = document.createElement('td');
-                var key = dia + '_' + h;
+                var key = diaIdx + '_' + h;
 
                 if (horarios[key]) {
                     var s = horarios[key];
+                    var mat = findMateria(s.materia_id);
+                    var doc = findMaestro(s.docente_id);
                     var div = document.createElement('div');
                     div.className = 'slot filled';
 
-                    var mat = findMateria(s.materia_id);
-                    var doc = findDocente(s.docente_id);
-                    var grp = findGrupo(s.grupo_id);
-
                     var mDiv = document.createElement('div');
                     mDiv.className = 'slot-materia';
-                    mDiv.textContent = mat ? mat.nombre : 'Materia #' + s.materia_id;
+                    mDiv.textContent = mat ? mat.nombre : s.materia_nombre || 'Materia';
                     div.appendChild(mDiv);
 
                     if (doc) {
                         var dDiv = document.createElement('div');
                         dDiv.className = 'slot-docente';
-                        dDiv.textContent = doc.nombre + (doc.apellido ? ' ' + doc.apellido : '');
+                        dDiv.textContent = (doc.nombre || '') + ' ' + (doc.apellido_paterno || '');
                         div.appendChild(dDiv);
                     }
 
-                    if (grp) {
-                        var gDiv = document.createElement('div');
-                        gDiv.className = 'slot-grupo';
-                        gDiv.textContent = (grp.grado ? grp.grado + 'o ' : '') + (grp.nombre || grp.grupo || '');
-                        div.appendChild(gDiv);
-                    }
+                    var gDiv = document.createElement('div');
+                    gDiv.className = 'slot-grupo';
+                    gDiv.textContent = s.grupo_nombre || getGrupoLabel(s.grupo_id);
+                    div.appendChild(gDiv);
 
                     var btnDel = document.createElement('button');
                     btnDel.className = 'slot-delete';
                     btnDel.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                    btnDel.title = 'Eliminar esta asignacion';
+                    btnDel.title = 'Eliminar';
                     btnDel.onclick = (function(key) {
-                        return function(e) {
-                            e.stopPropagation();
-                            eliminarSlot(key);
-                        };
+                        return function(e) { e.stopPropagation(); eliminarSlot(key); };
                     })(key);
                     div.appendChild(btnDel);
-
                     td.appendChild(div);
                 } else {
                     var empty = document.createElement('div');
                     empty.className = 'slot';
-                    empty.onclick = (function(dia, h) {
-                        return function() { asignarSlot(dia, h); };
-                    })(dia, h);
-
+                    empty.onclick = (function(diaIdx, h) {
+                        return function() { asignarSlot(diaIdx, h); };
+                    })(diaIdx, h);
                     var txt = document.createElement('span');
                     txt.className = 'slot-empty-text';
                     txt.textContent = '+ Asignar';
                     empty.appendChild(txt);
                     td.appendChild(empty);
                 }
-
                 tr.appendChild(td);
             });
-
             tbody.appendChild(tr);
         }
     }
 
-    /* ---- Asignar slot ---- */
-    function asignarSlot(dia, hora) {
-        if (!selectedMateria) {
-            showInfo('Selecciona una materia primero.');
-            return;
-        }
+    /* ---- Asignar slot manual ---- */
+    async function asignarSlot(diaIdx, horaIdx) {
+        if (!selectedMateria) { showInfo('Selecciona una materia primero.'); return; }
+        var key = diaIdx + '_' + horaIdx;
+        if (horarios[key]) { showInfo('Este horario ya esta ocupado.'); return; }
 
-        var key = dia + '_' + hora;
-
-        if (horarios[key]) {
-            showInfo('Este horario ya esta ocupado.');
-            return;
-        }
-
-        var payload = {
-            dia: dia,
-            hora: hora,
-            materia_id: selectedMateria,
-            docente_id: selectedDocente,
-            grupo_id: modoActual === 'grupo' ? selectedGrupo : null
+        var mat = findMateria(selectedMateria);
+        var slot = {
+            docente_id: mat ? parseInt(mat.maestro_id) : null,
+            dia: diasSemana[diaIdx],
+            hora_inicio: horasBase[horaIdx],
+            hora_fin: horasBase[horaIdx + 1] || '17:00',
+            materia_id: parseInt(selectedMateria),
+            grupo_id: mat ? parseInt(mat.grupo_id) : null
         };
 
-        fetch(API_GENERAR, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': ''
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                horarios[key] = {
-                    materia_id: selectedMateria,
-                    docente_id: selectedDocente,
-                    grupo_id: payload.grupo_id
-                };
-                renderGrid();
-                updateSummary();
-                showToast('Asignacion exitosa', 'success');
-            } else {
-                showToast(data.message || 'Error al asignar', 'error');
-            }
-        })
-        .catch(function(err) {
-            console.error('Error:', err);
-            showToast('Error de conexion', 'error');
-        });
+        try {
+            await DB.saveHorario([slot]);
+            horarios[key] = slot;
+            horariosData.push(slot);
+            renderGrid();
+            updateSummary();
+            showToast('Asignacion exitosa', 'success');
+        } catch (e) {
+            showToast('Error al asignar', 'error');
+        }
     }
 
     /* ---- Eliminar slot ---- */
-    function eliminarSlot(key) {
+    async function eliminarSlot(key) {
         var parts = key.split('_');
-        var dia = parseInt(parts[0]);
-        var hora = parseInt(parts[1]);
+        var diaIdx = parseInt(parts[0]);
+        var s = horarios[key];
+        if (!s) return;
 
-        fetch(API_ELIMINAR, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': ''
-            },
-            body: JSON.stringify({ dia: dia, hora: hora })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                delete horarios[key];
-                renderGrid();
-                updateSummary();
-                showToast('Slot eliminado', 'success');
-            } else {
-                showToast(data.message || 'Error al eliminar', 'error');
-            }
-        })
-        .catch(function(err) {
-            console.error('Error:', err);
-            showToast('Error de conexion', 'error');
-        });
+        try {
+            await DB.deleteHorario(s.docente_id, s.dia, s.hora_inicio);
+            delete horarios[key];
+            horariosData = horariosData.filter(function(h) {
+                return !(h.docente_id === s.docente_id && h.dia === s.dia && h.hora_inicio === s.hora_inicio);
+            });
+            renderGrid();
+            updateSummary();
+            showToast('Slot eliminado', 'success');
+        } catch (e) {
+            showToast('Error al eliminar', 'error');
+        }
     }
 
     /* ---- Generar automaticamente ---- */
-    function generarHorario() {
+    async function generarHorario() {
         var horasMaxDia = parseInt(document.getElementById('horasMaxDia').value) || 6;
         var horasMaxSem = parseInt(document.getElementById('horasMaxSem').value) || 30;
         var dias = getDiasHabilitados();
 
-        if (dias.length === 0) {
-            showInfo('Selecciona al menos un dia de la semana.');
-            return;
-        }
+        if (dias.length === 0) { showInfo('Selecciona al menos un dia.'); return; }
 
-        var payload = {
-            horas_max_dia: horasMaxDia,
-            horas_max_semana: horasMaxSem,
-            dias: dias
-        };
+        var materiasConNombres = catalogos.materias.map(function(m) {
+            var maestro = findMaestro(m.maestro_id);
+            var grupo = findGrupo(m.grupo_id);
+            var grado = grupo ? findGrado(grupo.grado_id) : null;
+            return {
+                id: m.id,
+                clave: m.clave,
+                nombre: m.nombre,
+                maestro_id: m.maestro_id,
+                grupo_id: m.grupo_id,
+                maestro_nombre: maestro ? (maestro.nombre + ' ' + maestro.apellido_paterno) : '',
+                grupo_nombre: grupo ? grupo.nombre : '',
+                grado_nombre: grado ? grado.nombre : ''
+            };
+        });
 
         var btn = document.getElementById('btnGenerar');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Generando...';
 
-        fetch(API_GENERAR, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': ''
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar horario automaticamente';
+        var result = HorariosEngine.generar(materiasConNombres, catalogos.maestros, horasMaxDia, horasMaxSem, dias);
 
-            if (data.success) {
-                showToast('Horario generado exitosamente', 'success');
-                cargarHorarios();
-            } else {
-                showToast(data.message || 'Error al generar', 'error');
+        if (result.items.length > 0) {
+            try {
+                await DB.clearHorarios();
+                await DB.saveHorario(result.items);
+            } catch (e) {
+                console.error('Error guardando:', e);
             }
-        })
-        .catch(function(err) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar horario automaticamente';
-            console.error('Error:', err);
-            showToast('Error de conexion', 'error');
-        });
+        }
+
+        await cargarHorariosDeSupabase();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generar horario automaticamente';
+
+        var msg = 'Horario generado: ' + result.asignadas + ' de ' + result.total + ' materias asignadas.';
+        if (result.sinMaestro > 0) msg += '\n' + result.sinMaestro + ' materias sin maestro.';
+        if (result.sinGrupo > 0) msg += '\n' + result.sinGrupo + ' materias sin grupo.';
+        if (result.sinAsignar.length > 0) {
+            msg += '\n\nSin asignar:';
+            result.sinAsignar.slice(0, 6).forEach(function(s) {
+                msg += '\n- ' + s.clave + ' ' + s.materia + ' (' + s.maestro + ', ' + s.grupo + ')';
+            });
+            if (result.sinAsignar.length > 6) msg += '\n... y ' + (result.sinAsignar.length - 6) + ' mas';
+        }
+
+        showInfo(msg);
+        showToast('Horario generado: ' + result.asignadas + '/' + result.total, result.asignadas === result.total ? 'success' : 'info');
     }
 
     /* ---- Limpiar ---- */
     function confirmarLimpiar() {
-        showConfirm('Esto eliminar todos los horarios asignados. Continuar?', function() {
-            limpiarHorarios();
-        });
+        showConfirm('Esto eliminara todos los horarios asignados. Continuar?', limpiarHorarios);
     }
 
-    function limpiarHorarios() {
+    async function limpiarHorarios() {
         var btn = document.getElementById('btnLimpiar');
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Limpiando...';
-
-        fetch(API_LIMPIAR, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': ''
-            },
-            body: JSON.stringify({})
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-broom"></i> Limpiar todos los horarios';
-
-            if (data.success) {
-                horarios = {};
-                renderGrid();
-                updateSummary();
-                showToast('Horarios limpiados', 'success');
-            } else {
-                showToast(data.message || 'Error al limpiar', 'error');
-            }
-        })
-        .catch(function(err) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-broom"></i> Limpiar todos los horarios';
-            console.error('Error:', err);
-            showToast('Error de conexion', 'error');
-        });
+        try {
+            await DB.clearHorarios();
+            horarios = {};
+            horariosData = [];
+            renderGrid();
+            updateSummary();
+            showToast('Horarios limpiados', 'success');
+        } catch (e) {
+            showToast('Error al limpiar', 'error');
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-broom"></i> Limpiar todos los horarios';
     }
 
     /* ---- PDF ---- */
     function descargarPDF() {
-        window.open(API_PDF, '_blank');
+        if (!selectedDocente || modoActual !== 'docente') {
+            showInfo('Selecciona un docente en modo "Por Docente" para descargar su PDF.');
+            return;
+        }
+        var doc = findMaestro(selectedDocente);
+        if (!doc) { showInfo('Docente no encontrado.'); return; }
+
+        var docenteNombre = (doc.nombre || '') + ' ' + (doc.apellido_paterno || '') + ' ' + (doc.apellido_materno || '');
+        var docenteHorarios = horariosData.filter(function(h) { return String(h.docente_id) === String(selectedDocente); });
+
+        if (docenteHorarios.length === 0) { showInfo('No hay horarios asignados a este docente.'); return; }
+
+        var horariosFormateados = docenteHorarios.map(function(h) {
+            return {
+                dia: h.dia,
+                hora_inicio: h.hora_inicio,
+                materia_nombre: (findMateria(h.materia_id) || {}).nombre || '',
+                grupo_nombre: h.grupo_nombre || getGrupoLabel(h.grupo_id)
+            };
+        });
+
+        var mes = new Date().getMonth() + 1;
+        var year = new Date().getFullYear();
+        var periodo = (mes >= 2 && mes <= 7) ? 'FEBRERO-JULIO ' + year : 'AGOSTO-ENERO ' + year + '-' + (year + 1);
+
+        HorariosPDF.generar(docenteNombre, horariosFormateados, periodo);
     }
 
     /* ---- Imprimir ---- */
-    function imprimirHorario() {
-        window.print();
-    }
+    function imprimirHorario() { window.print(); }
 
-    /* ---- Listen for param changes ---- */
-    document.getElementById('horasMaxDia').addEventListener('change', function() {
-        renderGrid();
-        updateSummary();
-    });
-
+    /* ---- Param change listeners ---- */
+    document.getElementById('horasMaxDia').addEventListener('change', function() { renderGrid(); updateSummary(); });
     document.querySelectorAll('.day-check').forEach(function(cb) {
-        cb.addEventListener('change', function() {
-            renderGrid();
-            updateSummary();
-        });
+        cb.addEventListener('change', function() { renderGrid(); updateSummary(); });
     });
 </script>
 </body>
