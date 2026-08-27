@@ -216,7 +216,7 @@
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-<script src="../js/data.js"></script>
+<!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
         var materiasData = [];
@@ -249,7 +249,7 @@
                 html += '<td>' + (m.nombre || '-') + '</td>';
                 html += '<td>' + (m.grupo || '-') + '</td>';
                 html += '<td>' + (m.maestro || '-') + '</td>';
-                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarMateria(' + m.id + ')">Eliminar</button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -267,6 +267,7 @@
                 var maestroNombre = '-';
                 if (m.maestros) maestroNombre = m.maestros.nombre_completo || m.maestros.nombre;
                 return {
+                    id: m.id,
                     clave: m.clave,
                     nombre: m.nombre,
                     grupo: grupoNombre,
@@ -294,6 +295,41 @@
                     renderMateriasTabla();
                 });
             }
+            (async function() {
+                var gruposResult = await sbClient.from('grupos').select('*, catalogo_grados!grado_id(nombre)').order('id');
+                var grupos = gruposResult.data || [];
+                var grupoSelect = document.getElementById('grupo_id');
+                grupos.forEach(function(g) {
+                    var label = g.nombre;
+                    if (g.catalogo_grados) label = g.catalogo_grados.nombre + ' ' + g.nombre;
+                    var opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = label;
+                    grupoSelect.appendChild(opt);
+                });
+                var maestrosResult = await DB.getMaestros(1, 500);
+                var maestros = maestrosResult.data || [];
+                var maestroSelect = document.getElementById('maestro_id');
+                maestros.forEach(function(m) {
+                    var opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.nombre_completo || (m.nombre + ' ' + m.apellido_paterno);
+                    maestroSelect.appendChild(opt);
+                });
+            })();
+            document.getElementById('formMateria').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var obj = {
+                    clave: document.getElementById('clave').value,
+                    nombre: document.getElementById('nombre').value,
+                    grupo_id: document.getElementById('grupo_id').value || null,
+                    maestro_id: document.getElementById('maestro_id').value || null
+                };
+                await DB.createMateria(obj);
+                closeModal('modalMateria');
+                this.reset();
+                populateMaterias();
+            });
             document.getElementById('btnConfirmarEliminarMateria').addEventListener('click', async function() {
                 if (materiaIdAEliminar) {
                     await DB.deleteMateria(materiaIdAEliminar);

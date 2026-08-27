@@ -81,6 +81,7 @@
                             <th>Estatus</th>
                             <th>Detalle</th>
                             <th>Fecha</th>
+                            <th>Accion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,33 +94,30 @@
     </div>
 
     <!-- Modal Nuevo Riesgo -->
-    <div class="modal-overlay" id="modalRiesgo">
-        <div class="modal">
+    <div class="modal" id="modalRiesgo">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>Nuevo registro de riesgo</h3>
-                <button class="modal-close" onclick="closeModal('modalRiesgo')">&times;</button>
+                <button class="close-btn" onclick="closeModal('modalRiesgo')">&times;</button>
             </div>
-            <form id="formRiesgo">
+            <form id="formRiesgo" onsubmit="return false;">
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="alumno_id">Alumno</label>
                         <select id="alumno_id" name="alumno_id" required>
                             <option value="">Seleccionar alumno</option>
-                            <!-- Opciones cargadas desde Supabase -->
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="materia_id">Materia</label>
                         <select id="materia_id" name="materia_id" required>
                             <option value="">Seleccionar materia</option>
-                            <!-- Opciones cargadas desde Supabase -->
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="causa_id">Causa</label>
                         <select id="causa_id" name="causa_id" required>
                             <option value="">Seleccionar causa</option>
-                            <!-- Opciones cargadas desde Supabase -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -137,20 +135,20 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalRiesgo')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary" onclick="submitRiesgo()">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal Importar Riesgo -->
-    <div class="modal-overlay" id="modalImportarRiesgo">
-        <div class="modal">
+    <div class="modal" id="modalImportarRiesgo">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>Importar registros de riesgo</h3>
-                <button class="modal-close" onclick="closeModal('modalImportarRiesgo')">&times;</button>
+                <button class="close-btn" onclick="closeModal('modalImportarRiesgo')">&times;</button>
             </div>
-            <form id="formImportarRiesgo" enctype="multipart/form-data">
+            <form id="formImportarRiesgo" enctype="multipart/form-data" onsubmit="return false;">
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="archivo_riesgo">Archivo Excel (.xlsx)</label>
@@ -199,7 +197,7 @@
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-    <script src="../js/data.js"></script>
+    <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
         var riesgoData = [];
@@ -221,7 +219,7 @@
             var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
             var tbody = document.getElementById('tabla_riesgos').querySelector('tbody');
             if (pageData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;">No hay registros de riesgo</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;">No hay registros de riesgo</td></tr>';
                 Pagination.render('paginationControls', riesgoCurrentPage, totalPages, function(p) { riesgoCurrentPage = p; renderRiesgoTabla(); });
                 return;
             }
@@ -234,6 +232,7 @@
                 html += '<td>' + (r.estatus || '-') + '</td>';
                 html += '<td>' + (r.detalle || '-') + '</td>';
                 html += '<td>' + (r.fecha || '-') + '</td>';
+                html += '<td><button class="btn btn-sm btn-danger" onclick="eliminarRiesgo(' + r.id + ')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -247,6 +246,7 @@
                 var materia = r.materias || {};
                 var causa = r.catalogo_causas || {};
                 return {
+                    id: r.id,
                     alumno: alumno.numero_control ? alumno.numero_control + ' - ' + (alumno.nombre_completo || '-') : (r.alumno || '-'),
                     materia: materia.nombre || '-',
                     causa: causa.nombre || '-',
@@ -259,8 +259,92 @@
             renderRiesgoTabla();
         }
 
+        async function eliminarRiesgo(id) {
+            if (!confirm('Desea eliminar este registro de riesgo permanentemente?')) return;
+            try {
+                var { error } = await sbClient
+                    .from('riesgo_academico')
+                    .delete()
+                    .eq('id', id);
+                if (error) {
+                    console.error(error);
+                    alert('Error: ' + error.message);
+                    return;
+                }
+                populateRiesgo();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function populateFormSelects() {
+            try {
+                var [alumnosData, materiasData, causasData] = await Promise.all([
+                    DB.getAlumnos(1, 500),
+                    DB.getMaterias(1, 500),
+                    DB.getCausas()
+                ]);
+
+                var selAlumno = document.getElementById('alumno_id');
+                (alumnosData.data || []).forEach(function(a) {
+                    var o = document.createElement('option');
+                    o.value = a.id;
+                    o.textContent = (a.numero_control || '') + ' - ' + (a.nombre_completo || '');
+                    selAlumno.appendChild(o);
+                });
+
+                var selMateria = document.getElementById('materia_id');
+                (materiasData.data || []).forEach(function(m) {
+                    var o = document.createElement('option');
+                    o.value = m.id;
+                    o.textContent = m.nombre || m.clave;
+                    selMateria.appendChild(o);
+                });
+
+                var selCausa = document.getElementById('causa_id');
+                causasData.forEach(function(c) {
+                    var o = document.createElement('option');
+                    o.value = c.id;
+                    o.textContent = c.nombre;
+                    selCausa.appendChild(o);
+                });
+            } catch(e) {
+                console.error('Error cargando selects:', e);
+            }
+        }
+
+        async function submitRiesgo() {
+            var alumnoId = document.getElementById('alumno_id').value;
+            var materiaId = document.getElementById('materia_id').value;
+            var causaId = document.getElementById('causa_id').value;
+            var estatus = document.getElementById('estatus').value;
+            var detalle = document.getElementById('detalle').value.trim();
+
+            if (!alumnoId || !materiaId || !causaId || !estatus || !detalle) {
+                alert('Todos los campos son obligatorios.');
+                return;
+            }
+
+            try {
+                await DB.createRiesgo({
+                    alumno_id: parseInt(alumnoId),
+                    materia_id: parseInt(materiaId),
+                    causa_id: parseInt(causaId),
+                    estatus: estatus,
+                    detalle: detalle
+                });
+                document.getElementById('formRiesgo').reset();
+                closeModal('modalRiesgo');
+                populateRiesgo();
+            } catch(e) {
+                console.error(e);
+                alert('Error al guardar: ' + (e.message || e));
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             populateRiesgo();
+            populateFormSelects();
             var searchEl = document.querySelector('[data-target="tabla_riesgos"]');
             if (searchEl) {
                 searchEl.addEventListener('keyup', function() {

@@ -148,12 +148,12 @@
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="matricula">No. Control *</label>
-                            <input type="text" id="matricula" name="matricula" class="form-control" required>
+                            <label for="numero_control">No. Control *</label>
+                            <input type="text" id="numero_control" name="numero_control" class="form-control" required>
                         </div>
                         <div class="form-group">
-                            <label for="nombre">Nombre *</label>
-                            <input type="text" id="nombre" name="nombre" class="form-control" required>
+                            <label for="nombre_completo">Nombre *</label>
+                            <input type="text" id="nombre_completo" name="nombre_completo" class="form-control" required>
                         </div>
                     </div>
                     <div class="form-row">
@@ -171,22 +171,12 @@
                             <label for="grado_id">Grado *</label>
                             <select id="grado_id" name="grado_id" class="form-control" required>
                                 <option value="">Seleccionar grado</option>
-                                <option value="1">1°</option>
-                                <option value="2">2°</option>
-                                <option value="3">3°</option>
-                                <option value="4">4°</option>
-                                <option value="5">5°</option>
-                                <option value="6">6°</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="grupo">Grupo *</label>
-                            <select id="grupo" name="grupo" class="form-control" required>
+                            <label for="grupo_id">Grupo *</label>
+                            <select id="grupo_id" name="grupo_id" class="form-control" required>
                                 <option value="">Seleccionar grupo</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
                             </select>
                         </div>
                     </div>
@@ -341,12 +331,14 @@
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-<script src="../js/data.js"></script>
+    <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
         var alumnosData = [];
         var alumnosCurrentPage = 1;
         var alumnosSearchTerm = '';
+        var gradosMap = {};
+        var gruposMap = {};
 
         function filtrarAlumnos() {
             var input = document.getElementById('searchAlumnos');
@@ -360,7 +352,9 @@
             if (alumnosSearchTerm) {
                 var term = alumnosSearchTerm;
                 filtered = alumnosData.filter(function(a) {
-                    var text = ((a.numero_control || '') + ' ' + (a.nombre_completo || '') + ' ' + (a.grado || '') + ' ' + (a.grupo || '') + ' ' + (a.lugar || '') + ' ' + (a.carrera || '') + ' ' + (a.modalidad || '') + ' ' + (a.generacion || '') + ' ' + (a.sexo || '') + ' ' + (a.activo ? 'Si' : 'No')).toLowerCase();
+                    var gradoNombre = gradosMap[a.grado_id] || '';
+                    var grupoNombre = gruposMap[a.grupo_id] || '';
+                    var text = ((a.numero_control || '') + ' ' + (a.nombre_completo || '') + ' ' + gradoNombre + ' ' + grupoNombre + ' ' + (a.lugar || '') + ' ' + (a.carrera || '') + ' ' + (a.modalidad || '') + ' ' + (a.generacion || '') + ' ' + (a.sexo || '') + ' ' + (a.activo ? 'Si' : 'No')).toLowerCase();
                     return text.includes(term);
                 });
             }
@@ -377,22 +371,63 @@
             }
             var html = '';
             pageData.forEach(function(a) {
+                var gradoNombre = gradosMap[a.grado_id] || a.grado_id || '-';
+                var grupoNombre = gruposMap[a.grupo_id] || a.grupo_id || '-';
                 html += '<tr>';
                 html += '<td>' + (a.numero_control || '-') + '</td>';
                 html += '<td>' + (a.nombre_completo || '-') + '</td>';
-                html += '<td>' + (a.grado || '-') + '</td>';
-                html += '<td>' + (a.grupo || '-') + '</td>';
+                html += '<td>' + gradoNombre + '</td>';
+                html += '<td>' + grupoNombre + '</td>';
                 html += '<td>' + (a.lugar || '-') + '</td>';
                 html += '<td>' + (a.carrera || '-') + '</td>';
                 html += '<td>' + (a.modalidad || '-') + '</td>';
                 html += '<td>' + (a.generacion || '-') + '</td>';
                 html += '<td>' + (a.sexo || '-') + '</td>';
                 html += '<td>' + (a.activo ? 'Si' : 'No') + '</td>';
-                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarAlumno(' + a.id + ')">Eliminar</button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
             Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; renderAlumnosTabla(); });
+        }
+
+        async function loadGradosSelect() {
+            var select = document.getElementById('grado_id');
+            var grados = await DB.getGrados();
+            grados.forEach(function(g) {
+                gradosMap[g.id] = g.nombre;
+                var opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.nombre;
+                select.appendChild(opt);
+            });
+        }
+
+        async function loadGruposSelect(gradoId) {
+            var select = document.getElementById('grupo_id');
+            select.innerHTML = '<option value="">Seleccionar grupo</option>';
+            if (!gradoId) return;
+            if (sbClient) {
+                var result = await sbClient.from('grupos').select('*').eq('grado_id', gradoId).order('nombre');
+                var grupos = result.data || [];
+                grupos.forEach(function(g) {
+                    gruposMap[g.id] = g.nombre;
+                    var opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = g.nombre;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        async function loadAllGrupos() {
+            if (sbClient) {
+                var result = await sbClient.from('grupos').select('*');
+                var grupos = result.data || [];
+                grupos.forEach(function(g) {
+                    gruposMap[g.id] = g.nombre;
+                });
+            }
         }
 
         async function populateAlumnos() {
@@ -410,7 +445,41 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            populateAlumnos();
+            Promise.all([loadGradosSelect(), loadAllGrupos()]).then(function() {
+                populateAlumnos();
+            });
+
+            document.getElementById('grado_id').addEventListener('change', function() {
+                loadGruposSelect(this.value);
+            });
+
+            document.getElementById('formAlumno').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var alumno = {
+                    numero_control: document.getElementById('numero_control').value.trim(),
+                    nombre_completo: document.getElementById('nombre_completo').value.trim(),
+                    apellido_paterno: document.getElementById('apellido_paterno').value.trim(),
+                    apellido_materno: document.getElementById('apellido_materno').value.trim(),
+                    grado_id: parseInt(document.getElementById('grado_id').value, 10),
+                    grupo_id: parseInt(document.getElementById('grupo_id').value, 10),
+                    lugar: document.getElementById('lugar').value,
+                    carrera: document.getElementById('carrera').value,
+                    modalidad: document.getElementById('modalidad').value,
+                    generacion: document.getElementById('generacion').value,
+                    sexo: document.getElementById('sexo').value,
+                    activo: document.getElementById('activo').value === '1'
+                };
+                try {
+                    await DB.createAlumno(alumno);
+                    closeModal('modalAlumno');
+                    document.getElementById('formAlumno').reset();
+                    populateAlumnos();
+                } catch (err) {
+                    console.error('Error al crear alumno:', err);
+                    alert('Error al guardar el alumno.');
+                }
+            });
+
             document.getElementById('formEliminarAlumno').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 if (alumnoIdAEliminar) {

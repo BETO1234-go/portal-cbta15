@@ -194,7 +194,7 @@
 <script src="../js/app.js"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-<script src="../js/data.js"></script>
+    <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
 <script>
     var gruposData = [];
@@ -206,7 +206,7 @@
         if (gruposSearchTerm) {
             var term = gruposSearchTerm;
             filtered = gruposData.filter(function(g) {
-                var text = ((g.grado || '') + ' ' + (g.grupo || '')).toLowerCase();
+                var text = ((g.grado || '') + ' ' + (g.nombre || '')).toLowerCase();
                 return text.includes(term);
             });
         }
@@ -224,8 +224,8 @@
         pageData.forEach(function(g) {
             html += '<tr>';
             html += '<td>' + (g.grado || '-') + '</td>';
-            html += '<td>' + (g.grupo || '-') + '</td>';
-            html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+            html += '<td>' + (g.nombre || '-') + '</td>';
+            html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarGrupo(' + g.id + ')">Eliminar</button></td>';
             html += '</tr>';
         });
         tbody.innerHTML = html;
@@ -235,9 +235,11 @@
     async function populateGrupos() {
         var result = await DB.getGrupos(1, 100);
         gruposData = (result.data || []).map(function(g) {
+            var grado = (g.catalogo_grados && g.catalogo_grados.nombre) || '-';
             return {
-                grado: g.grado || (g.catalogo_grados ? g.catalogo_grados.nombre : g.grado) || '-',
-                grupo: g.grupo || g.nombre || '-'
+                id: g.id,
+                grado: grado,
+                nombre: g.nombre || '-'
             };
         });
         gruposCurrentPage = 1;
@@ -251,8 +253,21 @@
         openModal('modalEliminarGrupo');
     }
 
+    async function loadGradosSelect() {
+        var grados = await DB.getGrados();
+        var select = document.getElementById('grado_id');
+        select.innerHTML = '<option value="">Seleccionar grado</option>';
+        (grados || []).forEach(function(gr) {
+            var opt = document.createElement('option');
+            opt.value = gr.id;
+            opt.textContent = gr.nombre;
+            select.appendChild(opt);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         populateGrupos();
+        loadGradosSelect();
         var buscadEl = document.getElementById('buscador');
         if (buscadEl) {
             buscadEl.addEventListener('keyup', function() {
@@ -265,8 +280,23 @@
             if (grupoIdAEliminar) {
                 await DB.deleteGrupo(grupoIdAEliminar);
                 closeModal('modalEliminarGrupo');
+                grupoIdAEliminar = null;
                 populateGrupos();
             }
+        });
+        document.getElementById('btnGuardarGrupo').addEventListener('click', async function() {
+            var form = document.getElementById('formGrupo');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            var nombre = document.getElementById('nombre').value.trim();
+            var grado_id = document.getElementById('grado_id').value;
+            if (!nombre || !grado_id) return;
+            await DB.createGrupo({ nombre: nombre, grado_id: parseInt(grado_id) });
+            closeModal('modalGrupo');
+            form.reset();
+            populateGrupos();
         });
     });
 </script>

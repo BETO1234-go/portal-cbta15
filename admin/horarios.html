@@ -785,7 +785,7 @@
 
     function getDiasHabilitados() {
         var checks = document.querySelectorAll('.day-check');
-        var diasMap = { '1': 'Lun', '2': 'Mar', '3': 'Mie', '4': 'Jue', '5': 'Vie' };
+        var diasMap = { '1': 'Lunes', '2': 'Martes', '3': 'Miercoles', '4': 'Jueves', '5': 'Viernes' };
         var dias = [];
         checks.forEach(function(cb) {
             if (cb.checked && diasMap[cb.value]) dias.push(diasMap[cb.value]);

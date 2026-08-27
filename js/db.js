@@ -417,16 +417,19 @@ var DB = {
     async getAlumnoDashboard(alumnoId) {
         if (!sbClient) return { alumno: null, calificaciones: [], asistencias: [], materias: [] };
 
-        const [alumno, cal, asi, mat] = await Promise.all([
-            sbClient.from('alumnos').select('*').eq('id', alumnoId).single(),
+        var alumnoResult = await sbClient.from('alumnos').select('*').eq('id', alumnoId).single();
+        var alumno = alumnoResult.data;
+
+        if (!alumno) return { alumno: null, calificaciones: [], asistencias: [], materias: [] };
+
+        var [cal, asi, mat] = await Promise.all([
             sbClient.from('calificaciones').select('*, materias!materia_id(nombre)').eq('alumno_id', alumnoId),
             sbClient.from('asistencias').select('*, materias!materia_id(nombre)').eq('alumno_id', alumnoId),
-            sbClient.from('materias').select('*, maestros!maestro_id(nombre)')
-                .in('grupo_id', [alumno.data?.grupo_id])
+            sbClient.from('materias').select('*, maestros!maestro_id(nombre)').eq('grupo_id', alumno.grupo_id)
         ]);
 
         return {
-            alumno: alumno.data,
+            alumno: alumno,
             calificaciones: cal.data || [],
             asistencias: asi.data || [],
             materias: mat.data || []

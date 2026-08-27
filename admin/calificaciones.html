@@ -193,7 +193,7 @@
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-<script src="../js/data.js"></script>
+<!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
         var calificacionesData = [];
@@ -264,6 +264,45 @@
                     renderCalificacionesTabla();
                 });
             }
+            (async function() {
+                var alumnosResult = await DB.getAlumnos(1, 500);
+                var alumnos = alumnosResult.data || [];
+                var alumnoSelect = document.getElementById('alumno_id');
+                alumnos.forEach(function(a) {
+                    var opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = (a.numero_control || '') + ' - ' + (a.nombre_completo || (a.nombre + ' ' + a.apellido_paterno));
+                    alumnoSelect.appendChild(opt);
+                });
+                var materiasResult = await DB.getMaterias(1, 500);
+                var materias = materiasResult.data || [];
+                var materiaSelect = document.getElementById('materia_id');
+                materias.forEach(function(m) {
+                    var opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = (m.clave || '') + ' - ' + m.nombre;
+                    materiaSelect.appendChild(opt);
+                });
+            })();
+            document.getElementById('formCalificacion').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var p1 = parseFloat(document.getElementById('parcial_1').value) || 0;
+                var p2 = parseFloat(document.getElementById('parcial_2').value) || 0;
+                var p3 = parseFloat(document.getElementById('parcial_3').value) || 0;
+                var promedio = Math.round(((p1 + p2 + p3) / 3) * 100) / 100;
+                var obj = {
+                    alumno_id: document.getElementById('alumno_id').value,
+                    materia_id: document.getElementById('materia_id').value,
+                    parcial_1: p1,
+                    parcial_2: p2,
+                    parcial_3: p3,
+                    promedio: promedio
+                };
+                await DB.createCalificacion(obj);
+                closeModal('modalCalificacion');
+                this.reset();
+                populateCalificaciones();
+            });
         });
     </script>
 </body>

@@ -337,11 +337,12 @@
         if (!sel) return;
         try {
             var data = await DB.getGrupos(1, 100);
-            data.data.forEach(function(g) {
+            var grupos = Array.isArray(data) ? data : (data.data || []);
+            grupos.forEach(function(g) {
                 var o = document.createElement('option');
                 o.value = g.id;
                 var grado = g.catalogo_grados || {};
-                o.textContent = (grado.nombre || '') + ' ' + g.nombre;
+                o.textContent = (typeof grado === 'object' ? (grado.nombre || '') : '') + ' ' + g.nombre;
                 sel.appendChild(o);
             });
         } catch(e) { console.error(e); }

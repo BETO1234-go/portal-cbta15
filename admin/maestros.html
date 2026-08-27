@@ -222,7 +222,7 @@
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-<script src="../js/data.js"></script>
+<!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
         var maestrosData = [];
@@ -255,7 +255,7 @@
                 html += '<td>' + (m.nombre || '-') + '</td>';
                 html += '<td>' + (m.especialidad || '-') + '</td>';
                 html += '<td>' + (m.usuario || '-') + '</td>';
-                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="showAlert(\'Funcionalidad pendiente de Supabase\', \'Eliminar\')">Eliminar</button></td>';
+                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarMaestro(' + m.id + ')">Eliminar</button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -266,6 +266,7 @@
             var result = await DB.getMaestros(1, 100);
             maestrosData = (result.data || []).map(function(m) {
                 return {
+                    id: m.id,
                     no_empleado: m.numero_empleado || m.no_empleado,
                     nombre: m.nombre_completo || m.nombre,
                     especialidad: m.especialidad || '-',
@@ -293,6 +294,23 @@
                     renderMaestrosTabla();
                 });
             }
+            document.getElementById('formMaestro').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var obj = {
+                    numero_empleado: document.getElementById('numero_empleado').value,
+                    nombre: document.getElementById('nombre').value,
+                    apellido_paterno: document.getElementById('apellido_paterno').value,
+                    apellido_materno: document.getElementById('apellido_materno').value,
+                    especialidad: document.getElementById('especialidad').value,
+                    activo: true
+                };
+                var usuarioId = document.getElementById('usuario_id').value;
+                if (usuarioId) obj.usuario_id = usuarioId;
+                await DB.createMaestro(obj);
+                closeModal('modalMaestro');
+                this.reset();
+                populateMaestros();
+            });
             document.getElementById('btnConfirmarEliminarMaestro').addEventListener('click', async function() {
                 if (maestroIdAEliminar) {
                     await DB.deleteMaestro(maestroIdAEliminar);

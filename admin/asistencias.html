@@ -219,7 +219,7 @@
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
-    <script src="../js/data.js"></script>
+    <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
         var asistenciasData = [];
@@ -293,6 +293,47 @@
                     renderAsistenciasTabla();
                 });
             }
+            (async function() {
+                var alumnosResult = await DB.getAlumnos(1, 500);
+                var alumnos = alumnosResult.data || [];
+                var alumnoSelect = document.getElementById('alumno_id');
+                alumnos.forEach(function(a) {
+                    var opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = (a.numero_control || '') + ' - ' + (a.nombre_completo || (a.nombre + ' ' + a.apellido_paterno));
+                    alumnoSelect.appendChild(opt);
+                });
+                var materiasResult = await DB.getMaterias(1, 500);
+                var materias = materiasResult.data || [];
+                var materiaSelect = document.getElementById('materia_id');
+                materias.forEach(function(m) {
+                    var opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = (m.clave || '') + ' - ' + m.nombre;
+                    materiaSelect.appendChild(opt);
+                });
+            })();
+            document.getElementById('formAsistencia').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var totalSesiones = parseInt(document.getElementById('clases_impartidas').value) || 0;
+                var asist = parseInt(document.getElementById('asistencias').value) || 0;
+                var faltas = totalSesiones - asist;
+                var porcentaje = totalSesiones > 0 ? Math.round((asist / totalSesiones) * 100) : 0;
+                var obj = {
+                    alumno_id: document.getElementById('alumno_id').value,
+                    materia_id: document.getElementById('materia_id').value,
+                    parcial: parseInt(document.getElementById('parcial').value),
+                    total_sesiones: totalSesiones,
+                    asistencias: asist,
+                    faltas: faltas,
+                    porcentaje: porcentaje,
+                    cumple: porcentaje >= 80
+                };
+                await DB.createAsistencia(obj);
+                closeModal('modalAsistencia');
+                this.reset();
+                populateAsistencias();
+            });
         });
     </script>
 </body>
