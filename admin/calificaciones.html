@@ -191,6 +191,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
@@ -203,6 +204,8 @@
         var calificacionesCurrentPage = 1;
         var calificacionesSearchTerm = '';
         var calificacionEditId = null;
+        var calificacionesTotalRecords = 0;
+        var calificacionesPerPage = 15;
 
         function showLoadingTablaCalificaciones() {
             var tbody = document.getElementById('tabla_calificaciones').querySelector('tbody');
@@ -218,18 +221,15 @@
                     return text.includes(term);
                 });
             }
-            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
-            if (calificacionesCurrentPage > totalPages) calificacionesCurrentPage = totalPages || 1;
-            var start = (calificacionesCurrentPage - 1) * Pagination.PAGE_SIZE;
-            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var totalPages = Math.ceil(calificacionesTotalRecords / calificacionesPerPage);
             var tbody = document.getElementById('tabla_calificaciones').querySelector('tbody');
-            if (pageData.length === 0) {
+            if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;">No hay calificaciones</td></tr>';
-                Pagination.render('paginationControls', calificacionesCurrentPage, totalPages, function(p) { calificacionesCurrentPage = p; renderCalificacionesTabla(); });
+                Pagination.render('paginationControls', calificacionesCurrentPage, totalPages, function(p) { calificacionesCurrentPage = p; loadCalificaciones(); });
                 return;
             }
             var html = '';
-            pageData.forEach(function(c) {
+            filtered.forEach(function(c) {
                 html += '<tr>';
                 html += '<td>' + escHtml(c.matricula) + '</td>';
                 html += '<td>' + escHtml(c.alumno) + '</td>';
@@ -245,13 +245,26 @@
                 html += '</tr>';
             });
             tbody.innerHTML = html;
-            Pagination.render('paginationControls', calificacionesCurrentPage, totalPages, function(p) { calificacionesCurrentPage = p; renderCalificacionesTabla(); });
+            Pagination.render('paginationControls', calificacionesCurrentPage, totalPages, function(p) { calificacionesCurrentPage = p; loadCalificaciones(); });
+            if (calificacionesTotalRecords > 0) {
+                var pc = document.getElementById('paginationControls');
+                if (pc) {
+                    var infoEl = document.createElement('div');
+                    infoEl.style.textAlign = 'center';
+                    infoEl.style.fontSize = '0.85rem';
+                    infoEl.style.marginTop = '4px';
+                    var start = (calificacionesCurrentPage - 1) * calificacionesPerPage + 1;
+                    var end = Math.min(calificacionesCurrentPage * calificacionesPerPage, calificacionesTotalRecords);
+                    infoEl.textContent = 'Mostrando ' + start + '-' + end + ' de ' + calificacionesTotalRecords;
+                    pc.appendChild(infoEl);
+                }
+            }
         }
 
-        async function populateCalificaciones() {
+        async function loadCalificaciones() {
             showLoadingTablaCalificaciones();
             try {
-                var result = await DB.getCalificaciones(1, 500);
+                var result = await DB.getCalificaciones(calificacionesCurrentPage, calificacionesPerPage);
                 calificacionesData = (result.data || []).map(function(c) {
                     var alumno = c.alumnos || {};
                     var materia = c.materias || {};
@@ -268,12 +281,17 @@
                         promedio: c.promedio || '-'
                     };
                 });
+                calificacionesTotalRecords = result.total || 0;
             } catch (err) {
                 console.error('Error cargando calificaciones:', err);
                 calificacionesData = [];
             }
-            calificacionesCurrentPage = 1;
             renderCalificacionesTabla();
+        }
+
+        function populateCalificaciones() {
+            calificacionesCurrentPage = 1;
+            loadCalificaciones();
         }
 
         function editCalificacion(id) {
@@ -363,6 +381,67 @@
                     showToast('Error al guardar la calificacion', 'error');
                 }
             });
+        });
+
+        document.getElementById('formImportarCalificaciones').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var fileInput = document.getElementById('archivo_calificaciones');
+            if (!fileInput.files.length) return;
+            var file = fileInput.files[0];
+            var btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+            try {
+                var alumnosRes = await DB.getAlumnos(1, 1000);
+                var alumnosDb = alumnosRes.data || [];
+                var alumnoMap = {};
+                alumnosDb.forEach(function(a) {
+                    var nc = (a.numero_control || '').toString().trim();
+                    if (nc) alumnoMap[nc] = a.id;
+                });
+                var materiasRes = await DB.getMaterias(1, 1000);
+                var materiasDb = materiasRes.data || [];
+                var materiaMap = {};
+                materiasDb.forEach(function(m) {
+                    var cl = (m.clave || '').toString().trim();
+                    if (cl) materiaMap[cl] = m.id;
+                });
+                var data = await file.arrayBuffer();
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet);
+                var count = 0;
+                for (var row of rows) {
+                    try {
+                        var nc = (row.matricula || row.numero_control || '').toString().trim();
+                        var clave = (row.clave || row.materia_clave || '').toString().trim();
+                        var alumnoId = alumnoMap[nc] || null;
+                        var materiaId = materiaMap[clave] || null;
+                        var p1 = parseFloat(row.parcial_1 || row.p1 || 0) || 0;
+                        var p2 = parseFloat(row.parcial_2 || row.p2 || 0) || 0;
+                        var p3 = parseFloat(row.parcial_3 || row.p3 || 0) || 0;
+                        var promedio = row.promedio ? parseFloat(row.promedio) : Math.round(((p1 + p2 + p3) / 3) * 100) / 100;
+                        await DB.createCalificacion({
+                            alumno_id: alumnoId,
+                            materia_id: materiaId,
+                            parcial_1: p1,
+                            parcial_2: p2,
+                            parcial_3: p3,
+                            promedio: promedio
+                        });
+                        count++;
+                    } catch(err) { console.warn('Row error:', err); }
+                }
+                showToast(count + ' registros importados', 'success');
+                closeModal('modalImportarCalificaciones');
+                fileInput.value = '';
+                await populateCalificaciones();
+            } catch(err) {
+                showToast('Error al importar: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar';
+            }
         });
     </script>
 </body>

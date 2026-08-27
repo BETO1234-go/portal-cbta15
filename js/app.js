@@ -211,10 +211,12 @@ function closeAlertModal() { closeModal('alertModal'); }
 
 // --- Logout (Supabase) ---
 function logout() {
-    localStorage.removeItem('supabase_user');
-    localStorage.removeItem('supabase_role');
-    localStorage.removeItem('supabase_session');
-    window.location.href = '../index.html';
+    showConfirm('¿Cerrar sesión?', function() {
+        localStorage.removeItem('supabase_user');
+        localStorage.removeItem('supabase_role');
+        localStorage.removeItem('supabase_session');
+        window.location.href = '../index.html';
+    }, 'Cerrar sesión');
 }
 
 // --- Auth helper ---

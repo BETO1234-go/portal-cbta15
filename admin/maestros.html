@@ -219,6 +219,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
@@ -228,6 +229,8 @@
         var maestrosData = [];
         var maestrosCurrentPage = 1;
         var maestrosSearchTerm = '';
+        var maestrosTotalRecords = 0;
+        var maestrosPerPage = 15;
 
         function renderMaestrosTabla() {
             var filtered = maestrosData;
@@ -238,18 +241,15 @@
                     return text.includes(term);
                 });
             }
-            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
-            if (maestrosCurrentPage > totalPages) maestrosCurrentPage = totalPages || 1;
-            var start = (maestrosCurrentPage - 1) * Pagination.PAGE_SIZE;
-            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var totalPages = Math.ceil(maestrosTotalRecords / maestrosPerPage);
             var tbody = document.getElementById('tabla_maestros').querySelector('tbody');
-            if (pageData.length === 0) {
+            if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">No hay maestros</td></tr>';
-                Pagination.render('paginationControls', maestrosCurrentPage, totalPages, function(p) { maestrosCurrentPage = p; renderMaestrosTabla(); });
+                Pagination.render('paginationControls', maestrosCurrentPage, totalPages, function(p) { maestrosCurrentPage = p; loadMaestros(); });
                 return;
             }
             var html = '';
-            pageData.forEach(function(m) {
+            filtered.forEach(function(m) {
                 html += '<tr>';
                 html += '<td>' + (m.no_empleado || '-') + '</td>';
                 html += '<td>' + (m.nombre || '-') + '</td>';
@@ -259,14 +259,27 @@
                 html += '</tr>';
             });
             tbody.innerHTML = html;
-            Pagination.render('paginationControls', maestrosCurrentPage, totalPages, function(p) { maestrosCurrentPage = p; renderMaestrosTabla(); });
+            Pagination.render('paginationControls', maestrosCurrentPage, totalPages, function(p) { maestrosCurrentPage = p; loadMaestros(); });
+            if (maestrosTotalRecords > 0) {
+                var pc = document.getElementById('paginationControls');
+                if (pc) {
+                    var infoEl = document.createElement('div');
+                    infoEl.style.textAlign = 'center';
+                    infoEl.style.fontSize = '0.85rem';
+                    infoEl.style.marginTop = '4px';
+                    var start = (maestrosCurrentPage - 1) * maestrosPerPage + 1;
+                    var end = Math.min(maestrosCurrentPage * maestrosPerPage, maestrosTotalRecords);
+                    infoEl.textContent = 'Mostrando ' + start + '-' + end + ' de ' + maestrosTotalRecords;
+                    pc.appendChild(infoEl);
+                }
+            }
         }
 
-        async function populateMaestros() {
+        async function loadMaestros() {
             var tbody = document.getElementById('tabla_maestros').querySelector('tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
             try {
-                var result = await DB.getMaestros(1, 100);
+                var result = await DB.getMaestros(maestrosCurrentPage, maestrosPerPage);
                 maestrosData = (result.data || []).map(function(m) {
                     return {
                         id: m.id,
@@ -280,13 +293,18 @@
                         usuario_id: m.usuario_id || ''
                     };
                 });
-                maestrosCurrentPage = 1;
+                maestrosTotalRecords = result.total || 0;
                 renderMaestrosTabla();
             } catch (err) {
                 console.error('Error al cargar maestros:', err);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
                 showToast('Error al cargar maestros', 'error');
             }
+        }
+
+        function populateMaestros() {
+            maestrosCurrentPage = 1;
+            loadMaestros();
         }
 
         function editMaestro(id) {
@@ -359,11 +377,50 @@
                         populateMaestros();
                         showToast('Maestro eliminado correctamente', 'success');
                     } catch (err) {
-                        console.error('Error al eliminar maestro:', err);
-                        showToast('Error al eliminar el maestro', 'error');
-                    }
+                    console.error('Error al eliminar maestro:', err);
+                    showToast('Error al eliminar el maestro', 'error');
                 }
-            });
+            }
+        });
+
+        document.getElementById('formImportarMaestros').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var fileInput = document.getElementById('archivo_maestros');
+            if (!fileInput.files.length) return;
+            var file = fileInput.files[0];
+            var btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+            try {
+                var data = await file.arrayBuffer();
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet);
+                var count = 0;
+                for (var row of rows) {
+                    try {
+                        await DB.createMaestro({
+                            numero_empleado: (row.numero_empleado || row.No_Empleado || row.no_empleado || '').toString().trim(),
+                            nombre: (row.nombre || row.Nombre || '').toString().trim(),
+                            apellido_paterno: (row.apellido_paterno || row.Apellido_Paterno || '').toString().trim(),
+                            apellido_materno: (row.apellido_materno || row.Apellido_Materno || '').toString().trim(),
+                            especialidad: (row.especialidad || row.Especialidad || '').toString().trim(),
+                            activo: true
+                        });
+                        count++;
+                    } catch(err) { console.warn('Row error:', err); }
+                }
+                showToast(count + ' registros importados', 'success');
+                closeModal('modalImportarMaestros');
+                fileInput.value = '';
+                await populateMaestros();
+            } catch(err) {
+                showToast('Error al importar: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar';
+            }
+        });
         });
     </script>
 </body>

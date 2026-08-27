@@ -329,6 +329,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
@@ -338,6 +339,8 @@
         var alumnosData = [];
         var alumnosCurrentPage = 1;
         var alumnosSearchTerm = '';
+        var alumnosTotalRecords = 0;
+        var alumnosPerPage = 15;
         var gradosMap = {};
         var gruposMap = {};
 
@@ -359,19 +362,16 @@
                     return text.includes(term);
                 });
             }
-            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
-            if (alumnosCurrentPage > totalPages) alumnosCurrentPage = totalPages || 1;
-            var start = (alumnosCurrentPage - 1) * Pagination.PAGE_SIZE;
-            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var totalPages = Math.ceil(alumnosTotalRecords / alumnosPerPage);
             var tbody = document.querySelector('.students-table tbody');
             if (!tbody) return;
-            if (pageData.length === 0) {
+            if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;">No hay alumnos</td></tr>';
-                Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; renderAlumnosTabla(); });
+                Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; loadAlumnos(); });
                 return;
             }
             var html = '';
-            pageData.forEach(function(a) {
+            filtered.forEach(function(a) {
                 var gradoNombre = gradosMap[a.grado_id] || a.grado_id || '-';
                 var grupoNombre = gruposMap[a.grupo_id] || a.grupo_id || '-';
                 html += '<tr>';
@@ -389,7 +389,20 @@
                 html += '</tr>';
             });
             tbody.innerHTML = html;
-            Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; renderAlumnosTabla(); });
+            Pagination.render('paginationControls', alumnosCurrentPage, totalPages, function(p) { alumnosCurrentPage = p; loadAlumnos(); });
+            if (alumnosTotalRecords > 0) {
+                var pc = document.getElementById('paginationControls');
+                if (pc) {
+                    var infoEl = document.createElement('div');
+                    infoEl.style.textAlign = 'center';
+                    infoEl.style.fontSize = '0.85rem';
+                    infoEl.style.marginTop = '4px';
+                    var start = (alumnosCurrentPage - 1) * alumnosPerPage + 1;
+                    var end = Math.min(alumnosCurrentPage * alumnosPerPage, alumnosTotalRecords);
+                    infoEl.textContent = 'Mostrando ' + start + '-' + end + ' de ' + alumnosTotalRecords;
+                    pc.appendChild(infoEl);
+                }
+            }
         }
 
         async function loadGradosSelect() {
@@ -431,19 +444,24 @@
             }
         }
 
-        async function populateAlumnos() {
+        async function loadAlumnos() {
             var tbody = document.querySelector('.students-table tbody');
             if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
             try {
-                var result = await DB.getAlumnos(1, 100);
+                var result = await DB.getAlumnos(alumnosCurrentPage, alumnosPerPage);
                 alumnosData = result.data || [];
-                alumnosCurrentPage = 1;
+                alumnosTotalRecords = result.total || 0;
                 renderAlumnosTabla();
             } catch (err) {
                 console.error('Error al cargar alumnos:', err);
                 tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
                 showToast('Error al cargar alumnos', 'error');
             }
+        }
+
+        function populateAlumnos() {
+            alumnosCurrentPage = 1;
+            loadAlumnos();
         }
 
         var alumnoIdAEliminar = null;
@@ -545,6 +563,71 @@
                 } catch (err) {
                     console.error('Error al eliminar todos:', err);
                     showToast('Error al eliminar los alumnos', 'error');
+                }
+            });
+
+            document.getElementById('formImportar').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var fileInput = document.getElementById('archivo_excel');
+                if (!fileInput.files.length) return;
+                var file = fileInput.files[0];
+                var btn = this.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+                try {
+                    var grados = await DB.getGrados();
+                    var gradoMap = {};
+                    grados.forEach(function(g) { gradoMap[g.nombre.toUpperCase().trim()] = g.id; });
+                    if (sbClient) {
+                        var grRes = await sbClient.from('grupos').select('*');
+                        var gruposDb = grRes.data || [];
+                    } else {
+                        var gruposDb = [];
+                    }
+                    var grupoMap = {};
+                    gruposDb.forEach(function(g) {
+                        var gn = (g.catalogo_grados && g.catalogo_grados.nombre) || '';
+                        grupoMap[(gn.toUpperCase().trim() + '|' + (g.nombre || '').toUpperCase().trim())] = g.id;
+                    });
+                    var data = await file.arrayBuffer();
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    var rows = XLSX.utils.sheet_to_json(sheet);
+                    var count = 0;
+                    for (var row of rows) {
+                        try {
+                            var gradoNombre = (row.grado || row.Grado || '').toString().toUpperCase().trim();
+                            var grupoNombre = (row.grupo || row.Grupo || '').toString().toUpperCase().trim();
+                            var gradoId = gradoMap[gradoNombre] || parseInt(gradoNombre) || null;
+                            var grupoId = grupoMap[gradoNombre + '|' + grupoNombre] || parseInt(grupoNombre) || null;
+                            var alumno = {
+                                numero_control: (row.matricula || row.numero_control || '').toString().trim(),
+                                nombre_completo: (row.nombre || row.nombre_completo || '').toString().trim(),
+                                apellido_paterno: (row.apellido_paterno || '').toString().trim(),
+                                apellido_materno: (row.apellido_materno || '').toString().trim(),
+                                sexo: (row.sexo || '').toString().trim(),
+                                fecha_nacimiento: row.fecha_nacimiento || null,
+                                lugar: (row.lugar || '').toString().trim(),
+                                carrera: (row.carrera || '').toString().trim(),
+                                modalidad: (row.modalidad || '').toString().trim(),
+                                generacion: (row.generacion || '').toString().trim(),
+                                grado_id: gradoId,
+                                grupo_id: grupoId,
+                                activo: true
+                            };
+                            await DB.createAlumno(alumno);
+                            count++;
+                        } catch(err) { console.warn('Row error:', err); }
+                    }
+                    showToast(count + ' registros importados', 'success');
+                    closeModal('modalImportar');
+                    fileInput.value = '';
+                    await populateAlumnos();
+                } catch(err) {
+                    showToast('Error al importar: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar';
                 }
             });
         });

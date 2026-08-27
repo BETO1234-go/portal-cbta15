@@ -217,6 +217,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
@@ -229,6 +230,8 @@
         var asistenciasCurrentPage = 1;
         var asistenciasSearchTerm = '';
         var asistenciaEditId = null;
+        var asistenciasTotalRecords = 0;
+        var asistenciasPerPage = 15;
 
         function showLoadingTablaAsistencias() {
             var tbody = document.getElementById('tabla_asistencias').querySelector('tbody');
@@ -244,18 +247,15 @@
                     return text.includes(term);
                 });
             }
-            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
-            if (asistenciasCurrentPage > totalPages) asistenciasCurrentPage = totalPages || 1;
-            var start = (asistenciasCurrentPage - 1) * Pagination.PAGE_SIZE;
-            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var totalPages = Math.ceil(asistenciasTotalRecords / asistenciasPerPage);
             var tbody = document.getElementById('tabla_asistencias').querySelector('tbody');
-            if (pageData.length === 0) {
+            if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;">No hay asistencias</td></tr>';
-                Pagination.render('paginationControls', asistenciasCurrentPage, totalPages, function(p) { asistenciasCurrentPage = p; renderAsistenciasTabla(); });
+                Pagination.render('paginationControls', asistenciasCurrentPage, totalPages, function(p) { asistenciasCurrentPage = p; loadAsistencias(); });
                 return;
             }
             var html = '';
-            pageData.forEach(function(a) {
+            filtered.forEach(function(a) {
                 html += '<tr>';
                 html += '<td>' + escHtml(a.matricula) + '</td>';
                 html += '<td>' + escHtml(a.alumno) + '</td>';
@@ -272,13 +272,26 @@
                 html += '</tr>';
             });
             tbody.innerHTML = html;
-            Pagination.render('paginationControls', asistenciasCurrentPage, totalPages, function(p) { asistenciasCurrentPage = p; renderAsistenciasTabla(); });
+            Pagination.render('paginationControls', asistenciasCurrentPage, totalPages, function(p) { asistenciasCurrentPage = p; loadAsistencias(); });
+            if (asistenciasTotalRecords > 0) {
+                var pc = document.getElementById('paginationControls');
+                if (pc) {
+                    var infoEl = document.createElement('div');
+                    infoEl.style.textAlign = 'center';
+                    infoEl.style.fontSize = '0.85rem';
+                    infoEl.style.marginTop = '4px';
+                    var start = (asistenciasCurrentPage - 1) * asistenciasPerPage + 1;
+                    var end = Math.min(asistenciasCurrentPage * asistenciasPerPage, asistenciasTotalRecords);
+                    infoEl.textContent = 'Mostrando ' + start + '-' + end + ' de ' + asistenciasTotalRecords;
+                    pc.appendChild(infoEl);
+                }
+            }
         }
 
-        async function populateAsistencias() {
+        async function loadAsistencias() {
             showLoadingTablaAsistencias();
             try {
-                var result = await DB.getAsistencias(1, 500);
+                var result = await DB.getAsistencias(asistenciasCurrentPage, asistenciasPerPage);
                 asistenciasData = (result.data || []).map(function(a) {
                     var alumno = a.alumnos || {};
                     var materia = a.materias || {};
@@ -300,12 +313,17 @@
                         cumple: a.cumple ? 'Si' : 'No'
                     };
                 });
+                asistenciasTotalRecords = result.total || 0;
             } catch (err) {
                 console.error('Error cargando asistencias:', err);
                 asistenciasData = [];
             }
-            asistenciasCurrentPage = 1;
             renderAsistenciasTabla();
+        }
+
+        function populateAsistencias() {
+            asistenciasCurrentPage = 1;
+            loadAsistencias();
         }
 
         function editAsistencia(id) {
@@ -397,6 +415,70 @@
                     showToast('Error al guardar la asistencia', 'error');
                 }
             });
+        });
+
+        document.getElementById('formImportarAsistencias').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var fileInput = document.getElementById('archivo_asistencias');
+            if (!fileInput.files.length) return;
+            var file = fileInput.files[0];
+            var btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+            try {
+                var alumnosRes = await DB.getAlumnos(1, 1000);
+                var alumnosDb = alumnosRes.data || [];
+                var alumnoMap = {};
+                alumnosDb.forEach(function(a) {
+                    var nc = (a.numero_control || '').toString().trim();
+                    if (nc) alumnoMap[nc] = a.id;
+                });
+                var materiasRes = await DB.getMaterias(1, 1000);
+                var materiasDb = materiasRes.data || [];
+                var materiaMap = {};
+                materiasDb.forEach(function(m) {
+                    var cl = (m.clave || '').toString().trim();
+                    if (cl) materiaMap[cl] = m.id;
+                });
+                var data = await file.arrayBuffer();
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet);
+                var count = 0;
+                for (var row of rows) {
+                    try {
+                        var nc = (row.matricula || row.numero_control || '').toString().trim();
+                        var clave = (row.clave || row.materia_clave || '').toString().trim();
+                        var alumnoId = alumnoMap[nc] || null;
+                        var materiaId = materiaMap[clave] || null;
+                        var totalSesiones = parseInt(row.total_sesiones || row.clases_impartidas || 0) || 0;
+                        var asist = parseInt(row.asistencias || 0) || 0;
+                        var faltas = totalSesiones - asist;
+                        var porcentaje = row.porcentaje ? parseInt(row.porcentaje) : (totalSesiones > 0 ? Math.round((asist / totalSesiones) * 100) : 0);
+                        var cumple = porcentaje >= 80;
+                        await DB.createAsistencia({
+                            alumno_id: alumnoId,
+                            materia_id: materiaId,
+                            parcial: parseInt(row.parcial || 1),
+                            total_sesiones: totalSesiones,
+                            asistencias: asist,
+                            faltas: faltas,
+                            porcentaje: porcentaje,
+                            cumple: cumple
+                        });
+                        count++;
+                    } catch(err) { console.warn('Row error:', err); }
+                }
+                showToast(count + ' registros importados', 'success');
+                closeModal('modalImportarAsistencias');
+                fileInput.value = '';
+                await populateAsistencias();
+            } catch(err) {
+                showToast('Error al importar: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar';
+            }
         });
     </script>
 </body>

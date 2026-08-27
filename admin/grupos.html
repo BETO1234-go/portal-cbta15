@@ -191,6 +191,7 @@
         </div>
     </div>
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="../js/app.js"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
@@ -200,6 +201,8 @@
     var gruposData = [];
     var gruposCurrentPage = 1;
     var gruposSearchTerm = '';
+    var gruposTotalRecords = 0;
+    var gruposPerPage = 15;
 
     function renderGruposTabla() {
         var filtered = gruposData;
@@ -210,18 +213,15 @@
                 return text.includes(term);
             });
         }
-        var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
-        if (gruposCurrentPage > totalPages) gruposCurrentPage = totalPages || 1;
-        var start = (gruposCurrentPage - 1) * Pagination.PAGE_SIZE;
-        var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+        var totalPages = Math.ceil(gruposTotalRecords / gruposPerPage);
         var tbody = document.getElementById('tabla_grupos').querySelector('tbody');
-        if (pageData.length === 0) {
+        if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;">No hay grupos</td></tr>';
-            Pagination.render('paginationControls', gruposCurrentPage, totalPages, function(p) { gruposCurrentPage = p; renderGruposTabla(); });
+            Pagination.render('paginationControls', gruposCurrentPage, totalPages, function(p) { gruposCurrentPage = p; loadGrupos(); });
             return;
         }
         var html = '';
-        pageData.forEach(function(g) {
+        filtered.forEach(function(g) {
             html += '<tr>';
             html += '<td>' + (g.grado || '-') + '</td>';
             html += '<td>' + (g.nombre || '-') + '</td>';
@@ -229,14 +229,27 @@
             html += '</tr>';
         });
         tbody.innerHTML = html;
-        Pagination.render('paginationControls', gruposCurrentPage, totalPages, function(p) { gruposCurrentPage = p; renderGruposTabla(); });
+        Pagination.render('paginationControls', gruposCurrentPage, totalPages, function(p) { gruposCurrentPage = p; loadGrupos(); });
+        if (gruposTotalRecords > 0) {
+            var pc = document.getElementById('paginationControls');
+            if (pc) {
+                var infoEl = document.createElement('div');
+                infoEl.style.textAlign = 'center';
+                infoEl.style.fontSize = '0.85rem';
+                infoEl.style.marginTop = '4px';
+                var start = (gruposCurrentPage - 1) * gruposPerPage + 1;
+                var end = Math.min(gruposCurrentPage * gruposPerPage, gruposTotalRecords);
+                infoEl.textContent = 'Mostrando ' + start + '-' + end + ' de ' + gruposTotalRecords;
+                pc.appendChild(infoEl);
+            }
+        }
     }
 
-    async function populateGrupos() {
+    async function loadGrupos() {
         var tbody = document.getElementById('tabla_grupos').querySelector('tbody');
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
         try {
-            var result = await DB.getGrupos(1, 100);
+            var result = await DB.getGrupos(gruposCurrentPage, gruposPerPage);
             gruposData = (result.data || []).map(function(g) {
                 var grado = (g.catalogo_grados && g.catalogo_grados.nombre) || '-';
                 return {
@@ -245,13 +258,18 @@
                     nombre: g.nombre || '-'
                 };
             });
-            gruposCurrentPage = 1;
+            gruposTotalRecords = result.total || 0;
             renderGruposTabla();
         } catch (err) {
             console.error('Error al cargar grupos:', err);
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
             showToast('Error al cargar grupos', 'error');
         }
+    }
+
+    function populateGrupos() {
+        gruposCurrentPage = 1;
+        loadGrupos();
     }
 
     var grupoIdAEliminar = null;
@@ -336,6 +354,46 @@
             } catch (err) {
                 console.error('Error al guardar grupo:', err);
                 showToast('Error al guardar el grupo', 'error');
+            }
+        });
+
+        document.getElementById('formImportarGrupos').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var fileInput = document.getElementById('archivoGrupos');
+            if (!fileInput.files.length) return;
+            var file = fileInput.files[0];
+            var btn = document.getElementById('btnImportarGrupos');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+            try {
+                var grados = await DB.getGrados();
+                var gradoMap = {};
+                grados.forEach(function(g) { gradoMap[g.nombre.toUpperCase().trim()] = g.id; });
+                var data = await file.arrayBuffer();
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet);
+                var count = 0;
+                for (var row of rows) {
+                    try {
+                        var gradoNombre = (row.grado || row.Grado || '').toString().toUpperCase().trim();
+                        var gradoId = gradoMap[gradoNombre] || parseInt(gradoNombre) || null;
+                        await DB.createGrupo({
+                            nombre: (row.nombre || row.Nombre || '').toString().trim(),
+                            grado_id: gradoId
+                        });
+                        count++;
+                    } catch(err) { console.warn('Row error:', err); }
+                }
+                showToast(count + ' registros importados', 'success');
+                closeModal('modalImportarGrupos');
+                fileInput.value = '';
+                await populateGrupos();
+            } catch(err) {
+                showToast('Error al importar: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar';
             }
         });
     });

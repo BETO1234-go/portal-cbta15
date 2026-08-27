@@ -213,6 +213,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="../js/app.js"></script>
         <script src="../js/supabase.js"></script>
     <script src="../js/db.js"></script>
@@ -222,6 +223,8 @@
         var materiasData = [];
         var materiasCurrentPage = 1;
         var materiasSearchTerm = '';
+        var materiasTotalRecords = 0;
+        var materiasPerPage = 15;
 
         function renderMateriasTabla() {
             var filtered = materiasData;
@@ -232,18 +235,15 @@
                     return text.includes(term);
                 });
             }
-            var totalPages = Math.ceil(filtered.length / Pagination.PAGE_SIZE);
-            if (materiasCurrentPage > totalPages) materiasCurrentPage = totalPages || 1;
-            var start = (materiasCurrentPage - 1) * Pagination.PAGE_SIZE;
-            var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
+            var totalPages = Math.ceil(materiasTotalRecords / materiasPerPage);
             var tbody = document.getElementById('tabla_materias').querySelector('tbody');
-            if (pageData.length === 0) {
+            if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">No hay materias</td></tr>';
-                Pagination.render('paginationControls', materiasCurrentPage, totalPages, function(p) { materiasCurrentPage = p; renderMateriasTabla(); });
+                Pagination.render('paginationControls', materiasCurrentPage, totalPages, function(p) { materiasCurrentPage = p; loadMaterias(); });
                 return;
             }
             var html = '';
-            pageData.forEach(function(m) {
+            filtered.forEach(function(m) {
                 html += '<tr>';
                 html += '<td>' + (m.clave || '-') + '</td>';
                 html += '<td>' + (m.nombre || '-') + '</td>';
@@ -253,14 +253,27 @@
                 html += '</tr>';
             });
             tbody.innerHTML = html;
-            Pagination.render('paginationControls', materiasCurrentPage, totalPages, function(p) { materiasCurrentPage = p; renderMateriasTabla(); });
+            Pagination.render('paginationControls', materiasCurrentPage, totalPages, function(p) { materiasCurrentPage = p; loadMaterias(); });
+            if (materiasTotalRecords > 0) {
+                var pc = document.getElementById('paginationControls');
+                if (pc) {
+                    var infoEl = document.createElement('div');
+                    infoEl.style.textAlign = 'center';
+                    infoEl.style.fontSize = '0.85rem';
+                    infoEl.style.marginTop = '4px';
+                    var start = (materiasCurrentPage - 1) * materiasPerPage + 1;
+                    var end = Math.min(materiasCurrentPage * materiasPerPage, materiasTotalRecords);
+                    infoEl.textContent = 'Mostrando ' + start + '-' + end + ' de ' + materiasTotalRecords;
+                    pc.appendChild(infoEl);
+                }
+            }
         }
 
-        async function populateMaterias() {
+        async function loadMaterias() {
             var tbody = document.getElementById('tabla_materias').querySelector('tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
             try {
-                var result = await DB.getMaterias(1, 100);
+                var result = await DB.getMaterias(materiasCurrentPage, materiasPerPage);
                 materiasData = (result.data || []).map(function(m) {
                     var grupoNombre = '-';
                     if (m.grupos) {
@@ -279,13 +292,18 @@
                         maestro_id: m.maestro_id || ''
                     };
                 });
-                materiasCurrentPage = 1;
+                materiasTotalRecords = result.total || 0;
                 renderMateriasTabla();
             } catch (err) {
                 console.error('Error al cargar materias:', err);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
                 showToast('Error al cargar materias', 'error');
             }
+        }
+
+        function populateMaterias() {
+            materiasCurrentPage = 1;
+            loadMaterias();
         }
 
         function editMateria(id) {
@@ -374,11 +392,75 @@
                         populateMaterias();
                         showToast('Materia eliminada correctamente', 'success');
                     } catch (err) {
-                        console.error('Error al eliminar materia:', err);
-                        showToast('Error al eliminar la materia', 'error');
-                    }
+                    console.error('Error al eliminar materia:', err);
+                    showToast('Error al eliminar la materia', 'error');
                 }
-            });
+            }
+        });
+
+        document.getElementById('formImportarMaterias').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var fileInput = document.getElementById('archivo_materias');
+            if (!fileInput.files.length) return;
+            var file = fileInput.files[0];
+            var btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+            try {
+                if (sbClient) {
+                    var grRes = await sbClient.from('grupos').select('*');
+                    var gruposDb = grRes.data || [];
+                } else {
+                    var gruposDb = [];
+                }
+                var grupoMap = {};
+                gruposDb.forEach(function(g) {
+                    var gn = (g.catalogo_grados && g.catalogo_grados.nombre) || '';
+                    var key = (gn.toUpperCase().trim() + '|' + (g.nombre || '').toUpperCase().trim());
+                    grupoMap[key] = g.id;
+                });
+                var maestrosRes = await DB.getMaestros(1, 1000);
+                var maestrosDb = maestrosRes.data || [];
+                var maestroMap = {};
+                maestrosDb.forEach(function(m) {
+                    var emp = (m.numero_empleado || m.no_empleado || '').toString().trim();
+                    if (emp) maestroMap[emp] = m.id;
+                });
+                var data = await file.arrayBuffer();
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var rows = XLSX.utils.sheet_to_json(sheet);
+                var count = 0;
+                for (var row of rows) {
+                    try {
+                        var grupoNombre = (row.grupo || row.Grupo || '').toString().toUpperCase().trim();
+                        var grupoId = null;
+                        for (var key in grupoMap) {
+                            if (key.endsWith('|' + grupoNombre)) { grupoId = grupoMap[key]; break; }
+                        }
+                        if (!grupoId) grupoId = parseInt(grupoNombre) || null;
+                        var maestroEmp = (row.maestro || row.numero_empleado || row.Maestro || '').toString().trim();
+                        var maestroId = maestroMap[maestroEmp] || null;
+                        await DB.createMateria({
+                            clave: (row.clave || row.Clave || '').toString().trim(),
+                            nombre: (row.nombre || row.Nombre || row.materia || '').toString().trim(),
+                            grupo_id: grupoId,
+                            maestro_id: maestroId
+                        });
+                        count++;
+                    } catch(err) { console.warn('Row error:', err); }
+                }
+                showToast(count + ' registros importados', 'success');
+                closeModal('modalImportarMaterias');
+                fileInput.value = '';
+                await populateMaterias();
+            } catch(err) {
+                showToast('Error al importar: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar';
+            }
+        });
         });
     </script>
 </body>
