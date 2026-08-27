@@ -210,11 +210,9 @@
                     </div>
                     <div class="component-modal-body" style="text-align:center;">
                         <img id="qrImage" src="" alt="QR Code" style="max-width:200px;margin:0 auto 12px;">
-                        <p id="qrUrl" style="font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:12px;"></p>
                         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
                             <button type="button" class="btn-agregar" onclick="downloadQR()"><i class="fa-solid fa-download"></i> Descargar</button>
                             <button type="button" class="btn-secundario" onclick="printQR()"><i class="fa-solid fa-print"></i> Imprimir</button>
-                            <button type="button" class="btn-secundario" onclick="copyQRUrl()"><i class="fa-solid fa-copy"></i> Copiar URL</button>
                         </div>
                     </div>
                 </div>
@@ -512,7 +510,6 @@
         function showQR(id, noInventario) {
             var url = BASE_PUBLIC_URL + '?id=' + id;
             document.getElementById('qrImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url);
-            document.getElementById('qrUrl').textContent = url;
             document.getElementById('modalQR').dataset.bienUrl = url;
             document.getElementById('modalQR').dataset.bienNo = noInventario;
             openModal('modalQR');
@@ -528,15 +525,13 @@
         }
 
         function printQR() {
-            var url = document.getElementById('modalQR').dataset.bienUrl;
             var no = document.getElementById('modalQR').dataset.bienNo;
             var win = window.open('', '_blank');
             win.document.write('<html><head><title>QR - ' + no + '</title>');
-            win.document.write('<style>body{font-family:Poppins,sans-serif;text-align:center;padding:40px;}img{max-width:200px;}h2{margin-top:20px;}p{color:#666;font-size:12px;}</style>');
+            win.document.write('<style>body{font-family:Poppins,sans-serif;text-align:center;padding:40px;}img{max-width:200px;}h2{margin-top:20px;font-size:18px;}</style>');
             win.document.write('</head><body>');
             win.document.write('<img src="' + document.getElementById('qrImage').src + '">');
             win.document.write('<h2>' + no + '</h2>');
-            win.document.write('<p>' + url + '</p>');
             win.document.write('</body></html>');
             win.document.close();
             win.print();
@@ -560,14 +555,14 @@
                 '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Poppins,sans-serif;padding:20px;}' +
                 '.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;}' +
                 '.qr-item{text-align:center;border:1px solid #ddd;border-radius:10px;padding:16px;page-break-inside:avoid;}' +
-                '.qr-item img{max-width:160px;}h3{font-size:14px;margin-top:8px;}p{font-size:11px;color:#888;word-break:break-all;}' +
+                '.qr-item img{max-width:160px;}h3{font-size:14px;margin-top:8px;}' +
                 '.no-print{margin-bottom:20px;text-align:center;}.no-print button{margin:4px;padding:8px 16px;border-radius:8px;border:1px solid #ccc;cursor:pointer;font-family:inherit;}</style></head><body>' +
                 '<div class="no-print"><h2>QRs de Inventario (' + items.length + ' bienes)</h2><br>' +
                 '<button onclick="window.print()">Imprimir todos</button></div><div class="qr-grid">';
             items.forEach(function(b) {
                 var url = BASE_PUBLIC_URL + '?id=' + b.id;
                 var qrImg = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
-                html += '<div class="qr-item"><img src="' + qrImg + '"><h3>' + (b.no_inventario || '') + '</h3><p>' + (b.nombre_bien || '') + '</p></div>';
+                html += '<div class="qr-item"><img src="' + qrImg + '"><h3>' + (b.no_inventario || '') + '</h3></div>';
             });
             html += '</div></body></html>';
             win.document.write(html);
