@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papelera - Inventario</title>
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <div class="contenedor">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <button class="hamburger-fixed" id="hamburgerFixed" onclick="toggleSidebar()" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <aside class="sidebar" id="mainSidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-copy">
+                        <h2 title="Sistema de Inventario">Sistema de Inventario</h2>
+                        <p id="userRole">Administrador</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-menu menu" aria-label="Menu principal">
+                <a href="dashboard.html"><i class="fa-solid fa-table-columns"></i><span>Dashboard</span></a>
+                <a href="bienes.html"><i class="fa-solid fa-cube"></i><span>Bienes</span></a>
+                <a href="personal.html"><i class="fa-solid fa-users"></i><span>Personal</span></a>
+                <a href="areas.html"><i class="fa-solid fa-building"></i><span>&Aacute;reas</span></a>
+                <a href="asignaciones.html"><i class="fa-solid fa-link"></i><span>Asignaciones</span></a>
+                <a href="historial.html"><i class="fa-solid fa-clock-rotate-left"></i><span>Historial</span></a>
+                <a href="reportes.html"><i class="fa-solid fa-chart-column"></i><span>Reportes</span></a>
+                <a href="pendientes.html"><i class="fa-solid fa-circle-exclamation"></i><span>Pendientes</span></a>
+                <a href="usuarios.html"><i class="fa-solid fa-user-gear"></i><span>Usuarios</span></a>
+                <a href="papelera.html" class="activo"><i class="fa-solid fa-trash-can"></i><span>Papelera</span></a>
+            </nav>
+            <div class="sidebar-footer logout">
+                <a href="#" onclick="toggleTheme(); return false;" style="cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <i class="fa-solid fa-palette"></i>
+                    <span data-theme-label>Cambiar tema</span>
+                </a>
+                <a href="../login.html" onclick="invLogout();" style="display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar sesi&oacute;n</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="contenido">
+            <div class="header">
+                <div>
+                    <h1><i class="fa-solid fa-trash-can"></i> Papelera</h1>
+                    <p>Bienes eliminados - Puedes restaurarlos o eliminarlos permanentemente</p>
+                </div>
+                <div class="header-right">
+                    <div class="page-actions">
+                        <button type="button" class="btn-secundario" onclick="vaciarPapelera()" style="color:var(--danger);border-color:var(--danger);">
+                            <i class="fa-solid fa-trash"></i> Vaciar papelera
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabla-contenedor">
+                <table class="bienes-table">
+                    <thead>
+                        <tr>
+                            <th>No. Inventario</th>
+                            <th>Nombre del bien</th>
+                            <th>Marca</th>
+                            <th>&Aacute;rea</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="papeleraBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:40px;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando papelera...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="paginacion" id="paginacion"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/db.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        var currentPage = 1;
+        var perPage = 15;
+        var allBienes = [];
+
+        async function loadPapelera() {
+            try {
+                if (typeof requireInvAuth === 'function') await requireInvAuth();
+                var result = await invClient.from('inv_bienes')
+                    .select('*, inv_areas(nombre_area), inv_marcas(nombre_marca)')
+                    .eq('eliminado', true)
+                    .order('id', { ascending: false });
+                allBienes = result.data || [];
+                renderPapelera();
+            } catch (err) {
+                console.error('Error loading papelera:', err);
+            }
+        }
+
+        function renderPapelera() {
+            var tbody = document.getElementById('papeleraBody');
+            var start = (currentPage - 1) * perPage;
+            var pageData = allBienes.slice(start, start + perPage);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;"><i class="fa-solid fa-trash-can" style="font-size:2rem;color:var(--muted);display:block;margin-bottom:8px;"></i>La papelera est&aacute; vac&iacute;a</td></tr>';
+                document.getElementById('paginacion').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map(function (b) {
+                var marca = '';
+                if (b.inv_marcas) marca = b.inv_marcas.nombre_marca;
+                else if (b.marca) marca = b.marca;
+                else marca = 'N/A';
+
+                var area = '';
+                if (b.inv_areas) area = b.inv_areas.nombre_area;
+                else area = 'Sin &aacute;rea';
+
+                return '<tr>' +
+                    '<td>' + (b.no_inventario || 'N/A') + '</td>' +
+                    '<td>' + (b.nombre_bien || '') + '</td>' +
+                    '<td>' + marca + '</td>' +
+                    '<td>' + area + '</td>' +
+                    '<td><span class="estado ' + (b.estatus || '').toLowerCase() + '">' + (b.estatus || 'N/A') + '</span></td>' +
+                    '<td class="acciones">' +
+                        '<button type="button" class="action-btn action-view" title="Restaurar" onclick="restaurar(' + b.id + ')">' +
+                            '<i class="fa-solid fa-trash-can-arrow-up"></i>' +
+                        '</button>' +
+                        '<button type="button" class="action-btn action-delete" title="Eliminar permanentemente" onclick="eliminarPermanente(' + b.id + ')">' +
+                            '<i class="fa-solid fa-ban"></i>' +
+                        '</button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            var totalPages = Math.max(1, Math.ceil(allBienes.length / perPage));
+            var container = document.getElementById('paginacion');
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+            var html = '<span>Mostrando ' + ((currentPage - 1) * perPage + 1) + '-' + Math.min(currentPage * perPage, allBienes.length) + ' de ' + allBienes.length + '</span><div class="paginas">';
+            html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goPage(' + (currentPage - 1) + ')">&laquo;</button>';
+            for (var i = 1; i <= totalPages; i++) {
+                if (totalPages > 7 && i > 3 && i < totalPages - 2 && Math.abs(i - currentPage) > 1) {
+                    if (i === 4 || i === totalPages - 3) html += '<button disabled>...</button>';
+                    continue;
+                }
+                html += '<button class="' + (i === currentPage ? 'pagina-activa' : '') + '" onclick="goPage(' + i + ')">' + i + '</button>';
+            }
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goPage(' + (currentPage + 1) + ')">&raquo;</button></div>';
+            container.innerHTML = html;
+        }
+
+        function goPage(page) {
+            currentPage = page;
+            renderPapelera();
+        }
+
+        function restaurar(id) {
+            showConfirm('Restaurar este bien?', function () {
+                InvDB.restoreBien(id).then(function () {
+                    showAlert('Bien restaurado correctamente.');
+                    loadPapelera();
+                }).catch(function (err) {
+                    showAlert('Error: ' + (err.message || 'No se pudo restaurar.'));
+                });
+            });
+        }
+
+        function eliminarPermanente(id) {
+            showConfirm('Eliminar este bien permanentemente? Esta acci\u00f3n no se puede deshacer.', function () {
+                InvDB.forceDeleteBien(id).then(function () {
+                    showAlert('Bien eliminado permanentemente.');
+                    loadPapelera();
+                }).catch(function (err) {
+                    showAlert('Error: ' + (err.message || 'No se pudo eliminar.'));
+                });
+            });
+        }
+
+        function vaciarPapelera() {
+            if (allBienes.length === 0) {
+                showAlert('La papelera ya est\u00e1 vac\u00eda.');
+                return;
+            }
+            showConfirm('Eliminar TODOS los bienes de la papelera permanentemente? (' + allBienes.length + ' bienes) Esta acci\u00f3n no se puede deshacer.', function () {
+                var promises = allBienes.map(function (b) { return InvDB.forceDeleteBien(b.id); });
+                Promise.all(promises).then(function () {
+                    showAlert('Papelera vaciada correctamente.');
+                    loadPapelera();
+                }).catch(function (err) {
+                    showAlert('Error al vaciar la papelera.');
+                    loadPapelera();
+                });
+            });
+        }
+
+        loadPapelera();
+    </script>
+</body>
+</html>

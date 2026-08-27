@@ -723,6 +723,26 @@ button{
     border-color:var(--action-danger-hover);
 }
 
+.action-delete{
+    background:var(--action-danger);
+    border-color:var(--action-danger);
+}
+
+.action-delete:hover{
+    background:var(--action-danger-hover);
+    border-color:var(--action-danger-hover);
+}
+
+.action-qr{
+    background:#8b5cf6;
+    border-color:#8b5cf6;
+}
+
+.action-qr:hover{
+    background:#7c3aed;
+    border-color:#7c3aed;
+}
+
 .btn-icon i,
 .action-btn i{
     color:#fff;
