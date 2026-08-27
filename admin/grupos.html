@@ -63,7 +63,7 @@
                 <p class="subtitle">Administracion de grupos</p>
             </div>
             <div class="page-actions">
-                <button class="btn btn-primary" onclick="openModal('modalGrupo')">
+                <button class="btn btn-primary" onclick="document.getElementById('formGrupo').reset(); delete document.getElementById('formGrupo').dataset.editId; document.querySelector('#modalGrupo .modal-header h2').textContent = 'Nuevo grupo'; openModal('modalGrupo')">
                     <i class="fa-solid fa-plus"></i> Nuevo grupo
                 </button>
                 <button class="btn btn-secondary" onclick="openModal('modalImportarGrupos')">
@@ -225,7 +225,7 @@
             html += '<tr>';
             html += '<td>' + (g.grado || '-') + '</td>';
             html += '<td>' + (g.nombre || '-') + '</td>';
-            html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarGrupo(' + g.id + ')">Eliminar</button></td>';
+            html += '<td><button type="button" class="btn btn-primary btn-sm" onclick="editGrupo(' + g.id + ')" title="Editar"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-danger btn-sm" onclick="setEliminarGrupo(' + g.id + ')">Eliminar</button></td>';
             html += '</tr>';
         });
         tbody.innerHTML = html;
@@ -233,17 +233,25 @@
     }
 
     async function populateGrupos() {
-        var result = await DB.getGrupos(1, 100);
-        gruposData = (result.data || []).map(function(g) {
-            var grado = (g.catalogo_grados && g.catalogo_grados.nombre) || '-';
-            return {
-                id: g.id,
-                grado: grado,
-                nombre: g.nombre || '-'
-            };
-        });
-        gruposCurrentPage = 1;
-        renderGruposTabla();
+        var tbody = document.getElementById('tabla_grupos').querySelector('tbody');
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
+        try {
+            var result = await DB.getGrupos(1, 100);
+            gruposData = (result.data || []).map(function(g) {
+                var grado = (g.catalogo_grados && g.catalogo_grados.nombre) || '-';
+                return {
+                    id: g.id,
+                    grado: grado,
+                    nombre: g.nombre || '-'
+                };
+            });
+            gruposCurrentPage = 1;
+            renderGruposTabla();
+        } catch (err) {
+            console.error('Error al cargar grupos:', err);
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
+            showToast('Error al cargar grupos', 'error');
+        }
     }
 
     var grupoIdAEliminar = null;
@@ -251,6 +259,18 @@
     function setEliminarGrupo(id) {
         grupoIdAEliminar = id;
         openModal('modalEliminarGrupo');
+    }
+
+    function editGrupo(id) {
+        var g = gruposData.find(function(x) { return x.id == id; });
+        if (!g) return;
+        document.getElementById('formGrupo').dataset.editId = id;
+        document.getElementById('nombre').value = g.nombre === '-' ? '' : g.nombre;
+        var gradoSelect = document.getElementById('grado_id');
+        var gradoOpt = Array.from(gradoSelect.options).find(function(o) { return o.textContent === g.grado; });
+        if (gradoOpt) gradoSelect.value = gradoOpt.value;
+        document.querySelector('#modalGrupo .modal-header h2').textContent = 'Editar grupo';
+        openModal('modalGrupo');
     }
 
     async function loadGradosSelect() {
@@ -299,15 +319,23 @@
             var nombre = document.getElementById('nombre').value.trim();
             var grado_id = document.getElementById('grado_id').value;
             if (!nombre || !grado_id) return;
+            var editId = form.dataset.editId;
             try {
-                await DB.createGrupo({ nombre: nombre, grado_id: parseInt(grado_id) });
+                if (editId) {
+                    await DB.updateGrupo(editId, { nombre: nombre, grado_id: parseInt(grado_id) });
+                    showToast('Grupo actualizado correctamente', 'success');
+                } else {
+                    await DB.createGrupo({ nombre: nombre, grado_id: parseInt(grado_id) });
+                    showToast('Grupo creado correctamente', 'success');
+                }
                 closeModal('modalGrupo');
                 form.reset();
+                delete form.dataset.editId;
+                document.querySelector('#modalGrupo .modal-header h2').textContent = 'Nuevo grupo';
                 populateGrupos();
-                showToast('Grupo creado correctamente', 'success');
             } catch (err) {
-                console.error('Error al crear grupo:', err);
-                showToast('Error al crear el grupo', 'error');
+                console.error('Error al guardar grupo:', err);
+                showToast('Error al guardar el grupo', 'error');
             }
         });
     });

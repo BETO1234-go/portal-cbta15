@@ -65,7 +65,7 @@
                     <p>Registro de maestros</p>
                 </div>
                 <div class="toolbar-right">
-                    <button class="btn btn-primary" onclick="openModal('modalMaestro')">
+                    <button class="btn btn-primary" onclick="document.getElementById('formMaestro').reset(); delete document.getElementById('formMaestro').dataset.editId; document.querySelector('#modalMaestro .modal-header h3').textContent = 'Nuevo Maestro'; openModal('modalMaestro')">
                         <i class="fa-solid fa-plus"></i> Nuevo maestro
                     </button>
                     <button class="btn btn-secondary" onclick="openModal('modalImportarMaestros')">
@@ -255,7 +255,7 @@
                 html += '<td>' + (m.nombre || '-') + '</td>';
                 html += '<td>' + (m.especialidad || '-') + '</td>';
                 html += '<td>' + (m.usuario || '-') + '</td>';
-                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarMaestro(' + m.id + ')">Eliminar</button></td>';
+                html += '<td><button type="button" class="btn btn-primary btn-sm" onclick="editMaestro(' + m.id + ')">Editar</button> <button type="button" class="btn btn-danger btn-sm" onclick="setEliminarMaestro(' + m.id + ')">Eliminar</button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -263,18 +263,44 @@
         }
 
         async function populateMaestros() {
-            var result = await DB.getMaestros(1, 100);
-            maestrosData = (result.data || []).map(function(m) {
-                return {
-                    id: m.id,
-                    no_empleado: m.numero_empleado || m.no_empleado,
-                    nombre: m.nombre_completo || m.nombre,
-                    especialidad: m.especialidad || '-',
-                    usuario: (m.usuarios ? m.usuarios.correo : m.usuario) || '-'
-                };
-            });
-            maestrosCurrentPage = 1;
-            renderMaestrosTabla();
+            var tbody = document.getElementById('tabla_maestros').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
+            try {
+                var result = await DB.getMaestros(1, 100);
+                maestrosData = (result.data || []).map(function(m) {
+                    return {
+                        id: m.id,
+                        no_empleado: m.numero_empleado || m.no_empleado,
+                        nombre: m.nombre_completo || m.nombre,
+                        especialidad: m.especialidad || '-',
+                        usuario: (m.usuarios ? m.usuarios.correo : m.usuario) || '-',
+                        numero_empleado: m.numero_empleado || '',
+                        apellido_paterno: m.apellido_paterno || '',
+                        apellido_materno: m.apellido_materno || '',
+                        usuario_id: m.usuario_id || ''
+                    };
+                });
+                maestrosCurrentPage = 1;
+                renderMaestrosTabla();
+            } catch (err) {
+                console.error('Error al cargar maestros:', err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
+                showToast('Error al cargar maestros', 'error');
+            }
+        }
+
+        function editMaestro(id) {
+            var m = maestrosData.find(function(item) { return item.id === id; });
+            if (!m) return;
+            document.getElementById('numero_empleado').value = m.numero_empleado || '';
+            document.getElementById('nombre').value = m.nombre || '';
+            document.getElementById('apellido_paterno').value = m.apellido_paterno || '';
+            document.getElementById('apellido_materno').value = m.apellido_materno || '';
+            document.getElementById('especialidad').value = m.especialidad === '-' ? '' : (m.especialidad || '');
+            document.getElementById('usuario_id').value = m.usuario_id || '';
+            document.getElementById('formMaestro').dataset.editId = id;
+            document.querySelector('#modalMaestro .modal-header h3').textContent = 'Editar Maestro';
+            openModal('modalMaestro');
         }
 
         var maestroIdAEliminar = null;
@@ -306,15 +332,23 @@
                 };
                 var usuarioId = document.getElementById('usuario_id').value;
                 if (usuarioId) obj.usuario_id = usuarioId;
+                var editId = this.dataset.editId;
                 try {
-                    await DB.createMaestro(obj);
+                    if (editId) {
+                        await DB.updateMaestro(editId, obj);
+                        showToast('Maestro actualizado correctamente', 'success');
+                    } else {
+                        await DB.createMaestro(obj);
+                        showToast('Maestro creado correctamente', 'success');
+                    }
                     closeModal('modalMaestro');
+                    delete this.dataset.editId;
+                    document.querySelector('#modalMaestro .modal-header h3').textContent = 'Nuevo Maestro';
                     this.reset();
                     populateMaestros();
-                    showToast('Maestro creado correctamente', 'success');
                 } catch (err) {
-                    console.error('Error al crear maestro:', err);
-                    showToast('Error al crear el maestro', 'error');
+                    console.error('Error al guardar maestro:', err);
+                    showToast(editId ? 'Error al actualizar el maestro' : 'Error al crear el maestro', 'error');
                 }
             });
             document.getElementById('btnConfirmarEliminarMaestro').addEventListener('click', async function() {

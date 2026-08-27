@@ -82,6 +82,7 @@
                             <th>P2</th>
                             <th>P3</th>
                             <th>Promedio</th>
+                            <th>Accion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -196,9 +197,17 @@
 <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
+        function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
         var calificacionesData = [];
         var calificacionesCurrentPage = 1;
         var calificacionesSearchTerm = '';
+        var calificacionEditId = null;
+
+        function showLoadingTablaCalificaciones() {
+            var tbody = document.getElementById('tabla_calificaciones').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando calificaciones...</td></tr>';
+        }
 
         function renderCalificacionesTabla() {
             var filtered = calificacionesData;
@@ -215,20 +224,24 @@
             var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
             var tbody = document.getElementById('tabla_calificaciones').querySelector('tbody');
             if (pageData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;">No hay calificaciones</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;">No hay calificaciones</td></tr>';
                 Pagination.render('paginationControls', calificacionesCurrentPage, totalPages, function(p) { calificacionesCurrentPage = p; renderCalificacionesTabla(); });
                 return;
             }
             var html = '';
             pageData.forEach(function(c) {
                 html += '<tr>';
-                html += '<td>' + (c.matricula || '-') + '</td>';
-                html += '<td>' + (c.alumno || '-') + '</td>';
-                html += '<td>' + (c.materia || '-') + '</td>';
-                html += '<td>' + (c.p1 || '-') + '</td>';
-                html += '<td>' + (c.p2 || '-') + '</td>';
-                html += '<td>' + (c.p3 || '-') + '</td>';
-                html += '<td>' + (c.promedio || '-') + '</td>';
+                html += '<td>' + escHtml(c.matricula) + '</td>';
+                html += '<td>' + escHtml(c.alumno) + '</td>';
+                html += '<td>' + escHtml(c.materia) + '</td>';
+                html += '<td>' + escHtml(c.p1) + '</td>';
+                html += '<td>' + escHtml(c.p2) + '</td>';
+                html += '<td>' + escHtml(c.p3) + '</td>';
+                html += '<td>' + escHtml(c.promedio) + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-sm btn-primary" onclick="editCalificacion(' + c.id + ')" title="Editar"><i class="fa-solid fa-pen"></i></button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteCalificacion(' + c.id + ')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>';
+                html += '</td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -236,22 +249,56 @@
         }
 
         async function populateCalificaciones() {
-            var result = await DB.getCalificaciones(1, 100);
-            calificacionesData = (result.data || []).map(function(c) {
-                var alumno = c.alumnos || {};
-                var materia = c.materias || {};
-                return {
-                    matricula: alumno.numero_control || '-',
-                    alumno: alumno.nombre_completo || '-',
-                    materia: materia.nombre || '-',
-                    p1: c.parcial_1 || '-',
-                    p2: c.parcial_2 || '-',
-                    p3: c.parcial_3 || '-',
-                    promedio: c.promedio || '-'
-                };
-            });
+            showLoadingTablaCalificaciones();
+            try {
+                var result = await DB.getCalificaciones(1, 500);
+                calificacionesData = (result.data || []).map(function(c) {
+                    var alumno = c.alumnos || {};
+                    var materia = c.materias || {};
+                    return {
+                        id: c.id,
+                        alumno_id: c.alumno_id,
+                        materia_id: c.materia_id,
+                        matricula: alumno.numero_control || '-',
+                        alumno: alumno.nombre_completo || '-',
+                        materia: materia.nombre || '-',
+                        p1: c.parcial_1 || '-',
+                        p2: c.parcial_2 || '-',
+                        p3: c.parcial_3 || '-',
+                        promedio: c.promedio || '-'
+                    };
+                });
+            } catch (err) {
+                console.error('Error cargando calificaciones:', err);
+                calificacionesData = [];
+            }
             calificacionesCurrentPage = 1;
             renderCalificacionesTabla();
+        }
+
+        function editCalificacion(id) {
+            var c = calificacionesData.find(function(x) { return x.id === id; });
+            if (!c) return;
+            calificacionEditId = id;
+            document.getElementById('alumno_id').value = c.alumno_id || '';
+            document.getElementById('materia_id').value = c.materia_id || '';
+            document.getElementById('parcial_1').value = c.p1 !== '-' ? c.p1 : '';
+            document.getElementById('parcial_2').value = c.p2 !== '-' ? c.p2 : '';
+            document.getElementById('parcial_3').value = c.p3 !== '-' ? c.p3 : '';
+            document.querySelector('#modalCalificacion .modal-header h3').textContent = 'Editar calificacion';
+            openModal('modalCalificacion');
+        }
+
+        async function deleteCalificacion(id) {
+            if (!confirm('Desea eliminar esta calificacion permanentemente?')) return;
+            try {
+                await DB.deleteCalificacion(id);
+                showToast('Calificacion eliminada correctamente', 'success');
+                populateCalificaciones();
+            } catch (err) {
+                console.error('Error al eliminar calificacion:', err);
+                showToast('Error al eliminar la calificacion', 'error');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -299,14 +346,21 @@
                     promedio: promedio
                 };
                 try {
-                    await DB.createCalificacion(obj);
+                    if (calificacionEditId) {
+                        await DB.updateCalificacion(calificacionEditId, obj);
+                        showToast('Calificacion actualizada correctamente', 'success');
+                    } else {
+                        await DB.createCalificacion(obj);
+                        showToast('Calificacion creada correctamente', 'success');
+                    }
                     closeModal('modalCalificacion');
                     this.reset();
+                    calificacionEditId = null;
+                    document.querySelector('#modalCalificacion .modal-header h3').textContent = 'Nueva calificacion';
                     populateCalificaciones();
-                    showToast('Calificacion creada correctamente', 'success');
                 } catch (err) {
-                    console.error('Error al crear calificacion:', err);
-                    showToast('Error al crear la calificacion', 'error');
+                    console.error('Error al guardar calificacion:', err);
+                    showToast('Error al guardar la calificacion', 'error');
                 }
             });
         });

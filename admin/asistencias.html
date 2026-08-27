@@ -83,6 +83,7 @@
                             <th>Asistencias</th>
                             <th>% Asistencia</th>
                             <th>Cumple 80%</th>
+                            <th>Accion</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -222,9 +223,17 @@
     <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
+        function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
         var asistenciasData = [];
         var asistenciasCurrentPage = 1;
         var asistenciasSearchTerm = '';
+        var asistenciaEditId = null;
+
+        function showLoadingTablaAsistencias() {
+            var tbody = document.getElementById('tabla_asistencias').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando asistencias...</td></tr>';
+        }
 
         function renderAsistenciasTabla() {
             var filtered = asistenciasData;
@@ -241,21 +250,25 @@
             var pageData = filtered.slice(start, start + Pagination.PAGE_SIZE);
             var tbody = document.getElementById('tabla_asistencias').querySelector('tbody');
             if (pageData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;">No hay asistencias</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;">No hay asistencias</td></tr>';
                 Pagination.render('paginationControls', asistenciasCurrentPage, totalPages, function(p) { asistenciasCurrentPage = p; renderAsistenciasTabla(); });
                 return;
             }
             var html = '';
             pageData.forEach(function(a) {
                 html += '<tr>';
-                html += '<td>' + (a.matricula || '-') + '</td>';
-                html += '<td>' + (a.alumno || '-') + '</td>';
-                html += '<td>' + (a.materia || '-') + '</td>';
-                html += '<td>' + (a.parcial || '-') + '</td>';
-                html += '<td>' + (a.sesiones || '-') + '</td>';
-                html += '<td>' + (a.asistencias || '-') + '</td>';
-                html += '<td>' + (a.porcentaje || '-') + '</td>';
-                html += '<td>' + (a.cumple || '-') + '</td>';
+                html += '<td>' + escHtml(a.matricula) + '</td>';
+                html += '<td>' + escHtml(a.alumno) + '</td>';
+                html += '<td>' + escHtml(a.materia) + '</td>';
+                html += '<td>' + escHtml(a.parcial) + '</td>';
+                html += '<td>' + escHtml(a.sesiones) + '</td>';
+                html += '<td>' + escHtml(a.asistencias) + '</td>';
+                html += '<td>' + escHtml(a.porcentaje) + '</td>';
+                html += '<td>' + escHtml(a.cumple) + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-sm btn-primary" onclick="editAsistencia(' + a.id + ')" title="Editar"><i class="fa-solid fa-pen"></i></button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteAsistencia(' + a.id + ')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>';
+                html += '</td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -263,24 +276,61 @@
         }
 
         async function populateAsistencias() {
-            var result = await DB.getAsistencias(1, 100);
-            asistenciasData = (result.data || []).map(function(a) {
-                var alumno = a.alumnos || {};
-                var materia = a.materias || {};
-                var porcentaje = a.total_sesiones > 0 ? Math.round((a.asistencias / a.total_sesiones) * 100) + '%' : '-';
-                return {
-                    matricula: alumno.numero_control || '-',
-                    alumno: alumno.nombre_completo || '-',
-                    materia: materia.nombre || '-',
-                    parcial: a.parcial || '-',
-                    sesiones: a.total_sesiones || '-',
-                    asistencias: a.asistencias || '-',
-                    porcentaje: porcentaje,
-                    cumple: a.cumple ? 'Si' : 'No'
-                };
-            });
+            showLoadingTablaAsistencias();
+            try {
+                var result = await DB.getAsistencias(1, 500);
+                asistenciasData = (result.data || []).map(function(a) {
+                    var alumno = a.alumnos || {};
+                    var materia = a.materias || {};
+                    var porcentaje = a.total_sesiones > 0 ? Math.round((a.asistencias / a.total_sesiones) * 100) + '%' : '-';
+                    return {
+                        id: a.id,
+                        alumno_id: a.alumno_id,
+                        materia_id: a.materia_id,
+                        parcial_raw: a.parcial,
+                        total_sesiones_raw: a.total_sesiones,
+                        asistencias_raw: a.asistencias,
+                        matricula: alumno.numero_control || '-',
+                        alumno: alumno.nombre_completo || '-',
+                        materia: materia.nombre || '-',
+                        parcial: a.parcial || '-',
+                        sesiones: a.total_sesiones || '-',
+                        asistencias: a.asistencias || '-',
+                        porcentaje: porcentaje,
+                        cumple: a.cumple ? 'Si' : 'No'
+                    };
+                });
+            } catch (err) {
+                console.error('Error cargando asistencias:', err);
+                asistenciasData = [];
+            }
             asistenciasCurrentPage = 1;
             renderAsistenciasTabla();
+        }
+
+        function editAsistencia(id) {
+            var a = asistenciasData.find(function(x) { return x.id === id; });
+            if (!a) return;
+            asistenciaEditId = id;
+            document.getElementById('alumno_id').value = a.alumno_id || '';
+            document.getElementById('materia_id').value = a.materia_id || '';
+            document.getElementById('parcial').value = a.parcial_raw || '';
+            document.getElementById('clases_impartidas').value = a.total_sesiones_raw || '';
+            document.getElementById('asistencias').value = a.asistencias_raw || '';
+            document.querySelector('#modalAsistencia .modal-header h3').textContent = 'Editar asistencia';
+            openModal('modalAsistencia');
+        }
+
+        async function deleteAsistencia(id) {
+            if (!confirm('Desea eliminar esta asistencia permanentemente?')) return;
+            try {
+                await DB.deleteAsistencia(id);
+                showToast('Asistencia eliminada correctamente', 'success');
+                populateAsistencias();
+            } catch (err) {
+                console.error('Error al eliminar asistencia:', err);
+                showToast('Error al eliminar la asistencia', 'error');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -330,14 +380,21 @@
                     cumple: porcentaje >= 80
                 };
                 try {
-                    await DB.createAsistencia(obj);
+                    if (asistenciaEditId) {
+                        await DB.updateAsistencia(asistenciaEditId, obj);
+                        showToast('Asistencia actualizada correctamente', 'success');
+                    } else {
+                        await DB.createAsistencia(obj);
+                        showToast('Asistencia creada correctamente', 'success');
+                    }
                     closeModal('modalAsistencia');
                     this.reset();
+                    asistenciaEditId = null;
+                    document.querySelector('#modalAsistencia .modal-header h3').textContent = 'Nueva asistencia';
                     populateAsistencias();
-                    showToast('Asistencia creada correctamente', 'success');
                 } catch (err) {
-                    console.error('Error al crear asistencia:', err);
-                    showToast('Error al crear la asistencia', 'error');
+                    console.error('Error al guardar asistencia:', err);
+                    showToast('Error al guardar la asistencia', 'error');
                 }
             });
         });

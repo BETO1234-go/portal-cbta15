@@ -200,9 +200,17 @@
     <!-- data.js removed: page has its own load functions -->
 <script src="../js/pagination.js"></script>
     <script>
+        function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
         var riesgoData = [];
         var riesgoCurrentPage = 1;
         var riesgoSearchTerm = '';
+        var riesgoEditId = null;
+
+        function showLoadingTablaRiesgos() {
+            var tbody = document.getElementById('tabla_riesgos').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando registros...</td></tr>';
+        }
 
         function renderRiesgoTabla() {
             var filtered = riesgoData;
@@ -226,13 +234,16 @@
             var html = '';
             pageData.forEach(function(r) {
                 html += '<tr>';
-                html += '<td>' + (r.alumno || '-') + '</td>';
-                html += '<td>' + (r.materia || '-') + '</td>';
-                html += '<td>' + (r.causa || '-') + '</td>';
-                html += '<td>' + (r.estatus || '-') + '</td>';
-                html += '<td>' + (r.detalle || '-') + '</td>';
-                html += '<td>' + (r.fecha || '-') + '</td>';
-                html += '<td><button class="btn btn-sm btn-danger" onclick="eliminarRiesgo(' + r.id + ')" title="Eliminar"><i class="fa-solid fa-trash"></i></button></td>';
+                html += '<td>' + escHtml(r.alumno) + '</td>';
+                html += '<td>' + escHtml(r.materia) + '</td>';
+                html += '<td>' + escHtml(r.causa) + '</td>';
+                html += '<td>' + escHtml(r.estatus) + '</td>';
+                html += '<td>' + escHtml(r.detalle) + '</td>';
+                html += '<td>' + escHtml(r.fecha) + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-sm btn-primary" onclick="editRiesgo(' + r.id + ')" title="Editar"><i class="fa-solid fa-pen"></i></button> ';
+                html += '<button class="btn btn-sm btn-danger" onclick="deleteRiesgo(' + r.id + ')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>';
+                html += '</td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -240,40 +251,58 @@
         }
 
         async function populateRiesgo() {
-            var result = await DB.getRiesgos(1, 100);
-            riesgoData = (result.data || []).map(function(r) {
-                var alumno = r.alumnos || {};
-                var materia = r.materias || {};
-                var causa = r.catalogo_causas || {};
-                return {
-                    id: r.id,
-                    alumno: alumno.numero_control ? alumno.numero_control + ' - ' + (alumno.nombre_completo || '-') : (r.alumno || '-'),
-                    materia: materia.nombre || '-',
-                    causa: causa.nombre || '-',
-                    estatus: r.estatus || '-',
-                    detalle: r.detalle || '-',
-                    fecha: r.created_at ? r.created_at.substring(0, 10) : (r.fecha || '-')
-                };
-            });
+            showLoadingTablaRiesgos();
+            try {
+                var result = await DB.getRiesgos(1, 500);
+                riesgoData = (result.data || []).map(function(r) {
+                    var alumno = r.alumnos || {};
+                    var materia = r.materias || {};
+                    var causa = r.catalogo_causas || {};
+                    return {
+                        id: r.id,
+                        alumno_id: r.alumno_id,
+                        materia_id: r.materia_id,
+                        causa_id: r.causa_id,
+                        estatus_raw: r.estatus,
+                        detalle_raw: r.detalle,
+                        alumno: alumno.numero_control ? alumno.numero_control + ' - ' + (alumno.nombre_completo || '-') : (r.alumno || '-'),
+                        materia: materia.nombre || '-',
+                        causa: causa.nombre || '-',
+                        estatus: r.estatus || '-',
+                        detalle: r.detalle || '-',
+                        fecha: r.created_at ? r.created_at.substring(0, 10) : (r.fecha || '-')
+                    };
+                });
+            } catch (err) {
+                console.error('Error cargando riesgos:', err);
+                riesgoData = [];
+            }
             riesgoCurrentPage = 1;
             renderRiesgoTabla();
         }
 
-        async function eliminarRiesgo(id) {
+        function editRiesgo(id) {
+            var r = riesgoData.find(function(x) { return x.id === id; });
+            if (!r) return;
+            riesgoEditId = id;
+            document.getElementById('alumno_id').value = r.alumno_id || '';
+            document.getElementById('materia_id').value = r.materia_id || '';
+            document.getElementById('causa_id').value = r.causa_id || '';
+            document.getElementById('estatus').value = r.estatus_raw || '';
+            document.getElementById('detalle').value = r.detalle_raw || '';
+            document.querySelector('#modalRiesgo .modal-header h3').textContent = 'Editar registro de riesgo';
+            openModal('modalRiesgo');
+        }
+
+        async function deleteRiesgo(id) {
             if (!confirm('Desea eliminar este registro de riesgo permanentemente?')) return;
             try {
-                var { error } = await sbClient
-                    .from('riesgo_academico')
-                    .delete()
-                    .eq('id', id);
-                if (error) {
-                    console.error(error);
-                    alert('Error: ' + error.message);
-                    return;
-                }
+                await DB.deleteRiesgo(id);
+                showToast('Registro eliminado correctamente', 'success');
                 populateRiesgo();
-            } catch(e) {
-                console.error(e);
+            } catch (e) {
+                console.error('Error al eliminar riesgo:', e);
+                showToast('Error al eliminar el registro', 'error');
             }
         }
 
@@ -325,20 +354,30 @@
                 return;
             }
 
+            var obj = {
+                alumno_id: parseInt(alumnoId),
+                materia_id: parseInt(materiaId),
+                causa_id: parseInt(causaId),
+                estatus: estatus,
+                detalle: detalle
+            };
+
             try {
-                await DB.createRiesgo({
-                    alumno_id: parseInt(alumnoId),
-                    materia_id: parseInt(materiaId),
-                    causa_id: parseInt(causaId),
-                    estatus: estatus,
-                    detalle: detalle
-                });
+                if (riesgoEditId) {
+                    await DB.updateRiesgo(riesgoEditId, obj);
+                    showToast('Registro actualizado correctamente', 'success');
+                } else {
+                    await DB.createRiesgo(obj);
+                    showToast('Registro creado correctamente', 'success');
+                }
                 document.getElementById('formRiesgo').reset();
+                riesgoEditId = null;
+                document.querySelector('#modalRiesgo .modal-header h3').textContent = 'Nuevo registro de riesgo';
                 closeModal('modalRiesgo');
                 populateRiesgo();
             } catch(e) {
                 console.error(e);
-                alert('Error al guardar: ' + (e.message || e));
+                showToast('Error al guardar: ' + (e.message || e), 'error');
             }
         }
 

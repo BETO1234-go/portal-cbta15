@@ -73,7 +73,7 @@
             <header class="page-header">
                 <h1><i class="fa-solid fa-user-graduate"></i> Alumnos</h1>
                 <div class="actions">
-                    <button class="btn btn-primary" onclick="openModal('modalAlumno')">
+                    <button class="btn btn-primary" onclick="document.getElementById('formAlumno').reset(); delete document.getElementById('formAlumno').dataset.editId; document.querySelector('#modalAlumno .modal-header h3').textContent = 'Nuevo Alumno'; openModal('modalAlumno')">
                         <i class="fa-solid fa-plus"></i> Nuevo Alumno
                     </button>
                     <button class="btn btn-secondary" onclick="openModal('modalImportar')">
@@ -385,7 +385,7 @@
                 html += '<td>' + (a.generacion || '-') + '</td>';
                 html += '<td>' + (a.sexo || '-') + '</td>';
                 html += '<td>' + (a.activo ? 'Si' : 'No') + '</td>';
-                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarAlumno(' + a.id + ')">Eliminar</button></td>';
+                html += '<td><button type="button" class="btn btn-primary btn-sm" onclick="editAlumno(' + a.id + ')" title="Editar"><i class="fa-solid fa-pen"></i></button> <button type="button" class="btn btn-danger btn-sm" onclick="setEliminarAlumno(' + a.id + ')">Eliminar</button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -432,10 +432,18 @@
         }
 
         async function populateAlumnos() {
-            var result = await DB.getAlumnos(1, 100);
-            alumnosData = result.data || [];
-            alumnosCurrentPage = 1;
-            renderAlumnosTabla();
+            var tbody = document.querySelector('.students-table tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
+            try {
+                var result = await DB.getAlumnos(1, 100);
+                alumnosData = result.data || [];
+                alumnosCurrentPage = 1;
+                renderAlumnosTabla();
+            } catch (err) {
+                console.error('Error al cargar alumnos:', err);
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
+                showToast('Error al cargar alumnos', 'error');
+            }
         }
 
         var alumnoIdAEliminar = null;
@@ -443,6 +451,28 @@
         function setEliminarAlumno(id) {
             alumnoIdAEliminar = id;
             openModal('modalEliminarAlumno');
+        }
+
+        function editAlumno(id) {
+            var a = alumnosData.find(function(x) { return x.id == id; });
+            if (!a) return;
+            document.getElementById('formAlumno').dataset.editId = id;
+            document.getElementById('numero_control').value = a.numero_control || '';
+            document.getElementById('nombre_completo').value = a.nombre_completo || '';
+            document.getElementById('apellido_paterno').value = a.apellido_paterno || '';
+            document.getElementById('apellido_materno').value = a.apellido_materno || '';
+            document.getElementById('grado_id').value = a.grado_id || '';
+            loadGruposSelect(a.grado_id).then(function() {
+                document.getElementById('grupo_id').value = a.grupo_id || '';
+            });
+            document.getElementById('lugar').value = a.lugar || '';
+            document.getElementById('carrera').value = a.carrera || '';
+            document.getElementById('modalidad').value = a.modalidad || '';
+            document.getElementById('generacion').value = a.generacion || '';
+            document.getElementById('sexo').value = a.sexo || '';
+            document.getElementById('activo').value = a.activo ? '1' : '0';
+            document.querySelector('#modalAlumno .modal-header h3').textContent = 'Editar Alumno';
+            openModal('modalAlumno');
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -470,31 +500,52 @@
                     sexo: document.getElementById('sexo').value,
                     activo: document.getElementById('activo').value === '1'
                 };
+                var editId = this.dataset.editId;
                 try {
-                    await DB.createAlumno(alumno);
+                    if (editId) {
+                        await DB.updateAlumno(editId, alumno);
+                        showToast('Alumno actualizado correctamente', 'success');
+                    } else {
+                        await DB.createAlumno(alumno);
+                        showToast('Alumno creado correctamente', 'success');
+                    }
                     closeModal('modalAlumno');
                     document.getElementById('formAlumno').reset();
+                    delete document.getElementById('formAlumno').dataset.editId;
+                    document.querySelector('#modalAlumno .modal-header h3').textContent = 'Nuevo Alumno';
                     populateAlumnos();
                 } catch (err) {
-                    console.error('Error al crear alumno:', err);
-                    alert('Error al guardar el alumno.');
+                    console.error('Error al guardar alumno:', err);
+                    showToast('Error al guardar el alumno', 'error');
                 }
             });
 
             document.getElementById('formEliminarAlumno').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 if (alumnoIdAEliminar) {
-                    await DB.deleteAlumno(alumnoIdAEliminar);
-                    closeModal('modalEliminarAlumno');
-                    populateAlumnos();
+                    try {
+                        await DB.deleteAlumno(alumnoIdAEliminar);
+                        closeModal('modalEliminarAlumno');
+                        showToast('Alumno eliminado correctamente', 'success');
+                        populateAlumnos();
+                    } catch (err) {
+                        console.error('Error al eliminar alumno:', err);
+                        showToast('Error al eliminar el alumno', 'error');
+                    }
                 }
             });
 
             document.getElementById('formEliminarTodos').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                await DB.deleteAllAlumnos();
-                closeModal('modalEliminarTodos');
-                populateAlumnos();
+                try {
+                    await DB.deleteAllAlumnos();
+                    closeModal('modalEliminarTodos');
+                    showToast('Todos los alumnos eliminados', 'success');
+                    populateAlumnos();
+                } catch (err) {
+                    console.error('Error al eliminar todos:', err);
+                    showToast('Error al eliminar los alumnos', 'error');
+                }
             });
         });
     </script>

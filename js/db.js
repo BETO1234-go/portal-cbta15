@@ -37,6 +37,17 @@ var DB = {
         return alumno;
     },
 
+    async updateAlumno(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('alumnos').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.alumnos.findIndex(a => a.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.alumnos[idx], data); return MOCK_DATA.alumnos[idx]; }
+        return null;
+    },
+
     async deleteAlumno(id) {
         if (sbClient) {
             const { error } = await sbClient.from('alumnos').delete().eq('id', id);
@@ -90,6 +101,17 @@ var DB = {
         return grupo;
     },
 
+    async updateGrupo(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('grupos').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.grupos.findIndex(g => g.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.grupos[idx], data); return MOCK_DATA.grupos[idx]; }
+        return null;
+    },
+
     async deleteGrupo(id) {
         if (sbClient) {
             const { error } = await sbClient.from('grupos').delete().eq('id', id);
@@ -131,6 +153,17 @@ var DB = {
         maestro.id = Date.now();
         MOCK_DATA.maestros.push(maestro);
         return maestro;
+    },
+
+    async updateMaestro(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('maestros').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.maestros.findIndex(m => m.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.maestros[idx], data); return MOCK_DATA.maestros[idx]; }
+        return null;
     },
 
     async deleteMaestro(id) {
@@ -176,6 +209,17 @@ var DB = {
         return materia;
     },
 
+    async updateMateria(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('materias').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.materias.findIndex(m => m.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.materias[idx], data); return MOCK_DATA.materias[idx]; }
+        return null;
+    },
+
     async deleteMateria(id) {
         if (sbClient) {
             const { error } = await sbClient.from('materias').delete().eq('id', id);
@@ -218,6 +262,27 @@ var DB = {
         return cal;
     },
 
+    async updateCalificacion(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('calificaciones').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.calificaciones.findIndex(c => c.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.calificaciones[idx], data); return MOCK_DATA.calificaciones[idx]; }
+        return null;
+    },
+
+    async deleteCalificacion(id) {
+        if (sbClient) {
+            const { error } = await sbClient.from('calificaciones').delete().eq('id', id);
+            if (error) throw error;
+            return true;
+        }
+        MOCK_DATA.calificaciones = MOCK_DATA.calificaciones.filter(c => c.id !== id);
+        return true;
+    },
+
     // ========================================================
     // ASISTENCIAS
     // ========================================================
@@ -248,6 +313,27 @@ var DB = {
         asi.id = Date.now();
         MOCK_DATA.asistencias.push(asi);
         return asi;
+    },
+
+    async updateAsistencia(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('asistencias').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.asistencias.findIndex(a => a.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.asistencias[idx], data); return MOCK_DATA.asistencias[idx]; }
+        return null;
+    },
+
+    async deleteAsistencia(id) {
+        if (sbClient) {
+            const { error } = await sbClient.from('asistencias').delete().eq('id', id);
+            if (error) throw error;
+            return true;
+        }
+        MOCK_DATA.asistencias = MOCK_DATA.asistencias.filter(a => a.id !== id);
+        return true;
     },
 
     // ========================================================
@@ -281,6 +367,27 @@ var DB = {
         riesgo.id = Date.now();
         MOCK_DATA.riesgo.push(riesgo);
         return riesgo;
+    },
+
+    async updateRiesgo(id, data) {
+        if (sbClient) {
+            const { data: result, error } = await sbClient.from('riesgo_academico').update(data).eq('id', id).select();
+            if (error) throw error;
+            return result[0];
+        }
+        var idx = MOCK_DATA.riesgo.findIndex(r => r.id === id);
+        if (idx >= 0) { Object.assign(MOCK_DATA.riesgo[idx], data); return MOCK_DATA.riesgo[idx]; }
+        return null;
+    },
+
+    async deleteRiesgo(id) {
+        if (sbClient) {
+            const { error } = await sbClient.from('riesgo_academico').delete().eq('id', id);
+            if (error) throw error;
+            return true;
+        }
+        MOCK_DATA.riesgo = MOCK_DATA.riesgo.filter(r => r.id !== id);
+        return true;
     },
 
     // ========================================================

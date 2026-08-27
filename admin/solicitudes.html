@@ -124,6 +124,8 @@
     <script src="../js/db.js"></script>
 <script src="../js/pagination.js"></script>
     <script>
+        function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
         var solicitudesData = [];
         var solicitudesCurrentPage = 1;
 
@@ -157,12 +159,12 @@
                 else badge = '<span class="badge-rechazada">Rechazada</span>';
                 var fecha = s.created_at ? new Date(s.created_at).toLocaleDateString('es-MX') : '-';
                 html += '<tr>';
-                html += '<td>' + s.id + '</td>';
-                html += '<td>' + (s.nombre_completo || '-') + '</td>';
-                html += '<td>' + (s.correo || '-') + '</td>';
-                html += '<td>' + (s.telefono || '-') + '</td>';
-                html += '<td>' + (s.ciclo_escolar || '-') + '</td>';
-                html += '<td>' + (s.turno_preferente || '-') + '</td>';
+                html += '<td>' + escHtml(s.id) + '</td>';
+                html += '<td>' + escHtml(s.nombre_completo) + '</td>';
+                html += '<td>' + escHtml(s.correo) + '</td>';
+                html += '<td>' + escHtml(s.telefono) + '</td>';
+                html += '<td>' + escHtml(s.ciclo_escolar) + '</td>';
+                html += '<td>' + escHtml(s.turno_preferente) + '</td>';
                 html += '<td>' + badge + '</td>';
                 html += '<td>' + fecha + '</td>';
                 html += '<td>';
@@ -198,14 +200,14 @@
                 var s = allData.find(function(x) { return x.id === id; });
                 if (!s) return;
                 var html = '';
-                html += '<p><strong>Nombre:</strong> ' + (s.nombre_completo || '-') + '</p>';
-                html += '<p><strong>Correo:</strong> ' + (s.correo || '-') + '</p>';
-                html += '<p><strong>Telefono:</strong> ' + (s.telefono || '-') + '</p>';
-                html += '<p><strong>Direccion:</strong> ' + (s.direccion || '-') + '</p>';
-                html += '<p><strong>Ciclo escolar:</strong> ' + (s.ciclo_escolar || '-') + '</p>';
-                html += '<p><strong>Turno preferente:</strong> ' + (s.turno_preferente || '-') + '</p>';
-                html += '<p><strong>Estatus:</strong> ' + (s.estatus || '-') + '</p>';
-                html += '<p><strong>Observaciones:</strong> ' + (s.observaciones || 'Sin observaciones') + '</p>';
+                html += '<p><strong>Nombre:</strong> ' + escHtml(s.nombre_completo) + '</p>';
+                html += '<p><strong>Correo:</strong> ' + escHtml(s.correo) + '</p>';
+                html += '<p><strong>Telefono:</strong> ' + escHtml(s.telefono) + '</p>';
+                html += '<p><strong>Direccion:</strong> ' + escHtml(s.direccion) + '</p>';
+                html += '<p><strong>Ciclo escolar:</strong> ' + escHtml(s.ciclo_escolar) + '</p>';
+                html += '<p><strong>Turno preferente:</strong> ' + escHtml(s.turno_preferente) + '</p>';
+                html += '<p><strong>Estatus:</strong> ' + escHtml(s.estatus) + '</p>';
+                html += '<p><strong>Observaciones:</strong> ' + escHtml(s.observaciones || 'Sin observaciones') + '</p>';
                 html += '<p><strong>Fecha de solicitud:</strong> ' + (s.created_at ? new Date(s.created_at).toLocaleString('es-MX') : '-') + '</p>';
                 document.getElementById('detalleSolicitud').innerHTML = html;
                 openModal('modalVer');

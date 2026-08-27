@@ -65,7 +65,7 @@
                     <p>Administracion de materias</p>
                 </div>
                 <div class="toolbar-right">
-                    <button class="btn btn-primary" onclick="openModal('modalMateria')">
+                    <button class="btn btn-primary" onclick="document.getElementById('formMateria').reset(); delete document.getElementById('formMateria').dataset.editId; document.querySelector('#modalMateria .modal-header h3').textContent = 'Nueva Materia'; openModal('modalMateria')">
                         <i class="fa-solid fa-plus"></i> Nueva materia
                     </button>
                     <button class="btn btn-secondary" onclick="openModal('modalImportarMaterias')">
@@ -249,7 +249,7 @@
                 html += '<td>' + (m.nombre || '-') + '</td>';
                 html += '<td>' + (m.grupo || '-') + '</td>';
                 html += '<td>' + (m.maestro || '-') + '</td>';
-                html += '<td><button type="button" class="btn btn-danger btn-sm" onclick="setEliminarMateria(' + m.id + ')">Eliminar</button></td>';
+                html += '<td><button type="button" class="btn btn-primary btn-sm" onclick="editMateria(' + m.id + ')">Editar</button> <button type="button" class="btn btn-danger btn-sm" onclick="setEliminarMateria(' + m.id + ')">Eliminar</button></td>';
                 html += '</tr>';
             });
             tbody.innerHTML = html;
@@ -257,25 +257,47 @@
         }
 
         async function populateMaterias() {
-            var result = await DB.getMaterias(1, 100);
-            materiasData = (result.data || []).map(function(m) {
-                var grupoNombre = '-';
-                if (m.grupos) {
-                    grupoNombre = m.grupos.nombre;
-                    if (m.grupos.catalogo_grados) grupoNombre = m.grupos.catalogo_grados.nombre + ' ' + m.grupos.nombre;
-                }
-                var maestroNombre = '-';
-                if (m.maestros) maestroNombre = m.maestros.nombre_completo || m.maestros.nombre;
-                return {
-                    id: m.id,
-                    clave: m.clave,
-                    nombre: m.nombre,
-                    grupo: grupoNombre,
-                    maestro: maestroNombre
-                };
-            });
-            materiasCurrentPage = 1;
-            renderMateriasTabla();
+            var tbody = document.getElementById('tabla_materias').querySelector('tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;"></i><br>Cargando...</td></tr>';
+            try {
+                var result = await DB.getMaterias(1, 100);
+                materiasData = (result.data || []).map(function(m) {
+                    var grupoNombre = '-';
+                    if (m.grupos) {
+                        grupoNombre = m.grupos.nombre;
+                        if (m.grupos.catalogo_grados) grupoNombre = m.grupos.catalogo_grados.nombre + ' ' + m.grupos.nombre;
+                    }
+                    var maestroNombre = '-';
+                    if (m.maestros) maestroNombre = m.maestros.nombre_completo || m.maestros.nombre;
+                    return {
+                        id: m.id,
+                        clave: m.clave,
+                        nombre: m.nombre,
+                        grupo: grupoNombre,
+                        maestro: maestroNombre,
+                        grupo_id: m.grupo_id || '',
+                        maestro_id: m.maestro_id || ''
+                    };
+                });
+                materiasCurrentPage = 1;
+                renderMateriasTabla();
+            } catch (err) {
+                console.error('Error al cargar materias:', err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;">Error al cargar datos</td></tr>';
+                showToast('Error al cargar materias', 'error');
+            }
+        }
+
+        function editMateria(id) {
+            var m = materiasData.find(function(item) { return item.id === id; });
+            if (!m) return;
+            document.getElementById('clave').value = m.clave || '';
+            document.getElementById('nombre').value = m.nombre || '';
+            document.getElementById('grupo_id').value = m.grupo_id || '';
+            document.getElementById('maestro_id').value = m.maestro_id || '';
+            document.getElementById('formMateria').dataset.editId = id;
+            document.querySelector('#modalMateria .modal-header h3').textContent = 'Editar Materia';
+            openModal('modalMateria');
         }
 
         var materiaIdAEliminar = null;
@@ -325,15 +347,23 @@
                     grupo_id: document.getElementById('grupo_id').value || null,
                     maestro_id: document.getElementById('maestro_id').value || null
                 };
+                var editId = this.dataset.editId;
                 try {
-                    await DB.createMateria(obj);
+                    if (editId) {
+                        await DB.updateMateria(editId, obj);
+                        showToast('Materia actualizada correctamente', 'success');
+                    } else {
+                        await DB.createMateria(obj);
+                        showToast('Materia creada correctamente', 'success');
+                    }
                     closeModal('modalMateria');
+                    delete this.dataset.editId;
+                    document.querySelector('#modalMateria .modal-header h3').textContent = 'Nueva Materia';
                     this.reset();
                     populateMaterias();
-                    showToast('Materia creada correctamente', 'success');
                 } catch (err) {
-                    console.error('Error al crear materia:', err);
-                    showToast('Error al crear la materia', 'error');
+                    console.error('Error al guardar materia:', err);
+                    showToast(editId ? 'Error al actualizar la materia' : 'Error al crear la materia', 'error');
                 }
             });
             document.getElementById('btnConfirmarEliminarMateria').addEventListener('click', async function() {
