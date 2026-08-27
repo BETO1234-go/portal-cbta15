@@ -279,6 +279,7 @@
         }
 
         async function loadBienes() {
+            document.getElementById('bienesBody').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Cargando...</td></tr>';
             try {
                 if (typeof requireInvAuth === 'function') await requireInvAuth();
                 var result = await InvDB.getBienes(1, 10000);

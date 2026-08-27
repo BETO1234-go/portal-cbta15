@@ -192,6 +192,7 @@
     }
 
     async function loadPendientes() {
+        document.getElementById('pendientesTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;display:block;margin-bottom:8px;"></i>Cargando...</td></tr>';
         try {
             if (typeof requireInvAuth === 'function') await requireInvAuth();
 
