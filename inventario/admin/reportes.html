@@ -194,8 +194,7 @@
             var disponibles = 0;
 
             bienes.forEach(function (b) {
-                var area = b.area || b.nombre_area || 'Sin &aacute;rea';
-                if (b.inv_areas && b.inv_areas.nombre_area) area = b.inv_areas.nombre_area;
+                var area = (b.inv_areas && b.inv_areas.nombre_area) || b.nombre_area || 'Sin área';
                 areaCount[area] = (areaCount[area] || 0) + 1;
 
                 var est = b.estatus || 'Sin estatus';
@@ -227,8 +226,7 @@
                     var disp = 0;
                     var valor = 0;
                     bienes.forEach(function (b) {
-                        var bArea = b.area || b.nombre_area || 'Sin &aacute;rea';
-                        if (b.inv_areas && b.inv_areas.nombre_area) bArea = b.inv_areas.nombre_area;
+                        var bArea = (b.inv_areas && b.inv_areas.nombre_area) || b.nombre_area || 'Sin área';
                         if (bArea === area) {
                             if (b.estatus === 'Asignado') asig++;
                             if (b.estatus === 'Disponible') disp++;

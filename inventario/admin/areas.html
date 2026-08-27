@@ -53,7 +53,7 @@
                     <p>Administra las &aacute;reas del instituto</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-agregar admin-only" onclick="openModal()">
+                    <button class="btn-agregar admin-only" onclick="openAreaModal()">
                         <i class="fa-solid fa-plus"></i> Nueva &aacute;rea
                     </button>
                 </div>
@@ -257,7 +257,7 @@
             renderPagination();
         }
 
-        function openModal(area) {
+        function openAreaModal(area) {
             var form = document.getElementById('areaForm');
             var title = document.getElementById('modalTitle');
             form.reset();
@@ -279,7 +279,7 @@
         function editArea(id) {
             var area = allAreas.find(function (a) { return a.id == id; });
             if (area) {
-                openModal(area);
+                openAreaModal(area);
             }
         }
 

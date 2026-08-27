@@ -6,8 +6,8 @@
     <title>Solicitudes de Inscripcion - CBTA 15</title>
     <script>
         (function () {
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
+            var t = localStorage.getItem('portal-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
         })();
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">

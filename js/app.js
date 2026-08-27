@@ -5,12 +5,12 @@
 // --- Tema (light/dark) ---
 (function () {
     var root = document.documentElement;
-    var saved = localStorage.getItem('inventario-theme');
+    var saved = localStorage.getItem('portal-theme');
     if (saved === 'dark' || saved === 'light') {
         root.dataset.theme = saved;
     }
     document.querySelectorAll('[data-theme-label]').forEach(function (el) {
-        el.textContent = root.dataset.theme === 'dark' ? 'Cambiar a claro' : 'Cambiar a oscuro';
+        el.textContent = root.dataset.theme === 'dark' ? 'Modo oscuro' : 'Modo claro';
     });
 })();
 
@@ -18,10 +18,9 @@ function toggleTheme() {
     var root = document.documentElement;
     var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
     root.dataset.theme = next;
-    localStorage.setItem('inventario-theme', next);
-    document.querySelectorAll('[data-theme-label]').forEach(function (el) {
-        el.textContent = next === 'dark' ? 'Cambiar a claro' : 'Cambiar a oscuro';
-    });
+    localStorage.setItem('portal-theme', next);
+    var label = document.querySelector('[data-theme-label]');
+    if (label) label.textContent = next === 'dark' ? 'Modo oscuro' : 'Modo claro';
 }
 
 // --- Sidebar ---
@@ -154,17 +153,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function openModal(id) {
     var el = document.getElementById(id);
-    if (el) el.classList.add('show');
+    if (el) {
+        el.classList.add('show');
+        el.classList.add('active');
+    }
 }
 
 function closeModal(id) {
     var el = document.getElementById(id);
-    if (el) el.classList.remove('show');
+    if (el) {
+        el.classList.remove('show');
+        el.classList.remove('active');
+    }
 }
 
 document.addEventListener('click', function (e) {
-    document.querySelectorAll('.component-modal.show').forEach(function (modal) {
-        if (e.target === modal) modal.classList.remove('show');
+    document.querySelectorAll('.component-modal.show, .modal-overlay.active').forEach(function (modal) {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+            modal.classList.remove('active');
+        }
     });
 });
 
@@ -223,7 +231,11 @@ function getAuthRole() {
 function requireAuth() {
     var user = getAuthUser();
     if (!user) {
-        window.location.href = '../login/personal.html';
+        if (getAuthRole() === 'alumno') {
+            window.location.href = '../login/alumno.html';
+        } else {
+            window.location.href = '../login/personal.html';
+        }
         return false;
     }
     return true;

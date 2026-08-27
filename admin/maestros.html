@@ -13,7 +13,7 @@
     </style>
     <script>
         (function () {
-            var savedTheme = localStorage.getItem('inventario-theme');
+            var savedTheme = localStorage.getItem('portal-theme');
             if (savedTheme === 'dark' || savedTheme === 'light') {
                 document.documentElement.dataset.theme = savedTheme;
             }
@@ -306,16 +306,28 @@
                 };
                 var usuarioId = document.getElementById('usuario_id').value;
                 if (usuarioId) obj.usuario_id = usuarioId;
-                await DB.createMaestro(obj);
-                closeModal('modalMaestro');
-                this.reset();
-                populateMaestros();
+                try {
+                    await DB.createMaestro(obj);
+                    closeModal('modalMaestro');
+                    this.reset();
+                    populateMaestros();
+                    showToast('Maestro creado correctamente', 'success');
+                } catch (err) {
+                    console.error('Error al crear maestro:', err);
+                    showToast('Error al crear el maestro', 'error');
+                }
             });
             document.getElementById('btnConfirmarEliminarMaestro').addEventListener('click', async function() {
                 if (maestroIdAEliminar) {
-                    await DB.deleteMaestro(maestroIdAEliminar);
-                    closeModal('modalEliminarMaestro');
-                    populateMaestros();
+                    try {
+                        await DB.deleteMaestro(maestroIdAEliminar);
+                        closeModal('modalEliminarMaestro');
+                        populateMaestros();
+                        showToast('Maestro eliminado correctamente', 'success');
+                    } catch (err) {
+                        console.error('Error al eliminar maestro:', err);
+                        showToast('Error al eliminar el maestro', 'error');
+                    }
                 }
             });
         });

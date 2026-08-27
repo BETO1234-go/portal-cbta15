@@ -13,7 +13,7 @@
     </style>
     <script>
         (function () {
-            var savedTheme = localStorage.getItem('inventario-theme');
+            var savedTheme = localStorage.getItem('portal-theme');
             if (savedTheme === 'dark' || savedTheme === 'light') {
                 document.documentElement.dataset.theme = savedTheme;
             }
@@ -325,16 +325,28 @@
                     grupo_id: document.getElementById('grupo_id').value || null,
                     maestro_id: document.getElementById('maestro_id').value || null
                 };
-                await DB.createMateria(obj);
-                closeModal('modalMateria');
-                this.reset();
-                populateMaterias();
+                try {
+                    await DB.createMateria(obj);
+                    closeModal('modalMateria');
+                    this.reset();
+                    populateMaterias();
+                    showToast('Materia creada correctamente', 'success');
+                } catch (err) {
+                    console.error('Error al crear materia:', err);
+                    showToast('Error al crear la materia', 'error');
+                }
             });
             document.getElementById('btnConfirmarEliminarMateria').addEventListener('click', async function() {
                 if (materiaIdAEliminar) {
-                    await DB.deleteMateria(materiaIdAEliminar);
-                    closeModal('modalEliminarMateria');
-                    populateMaterias();
+                    try {
+                        await DB.deleteMateria(materiaIdAEliminar);
+                        closeModal('modalEliminarMateria');
+                        populateMaterias();
+                        showToast('Materia eliminada correctamente', 'success');
+                    } catch (err) {
+                        console.error('Error al eliminar materia:', err);
+                        showToast('Error al eliminar la materia', 'error');
+                    }
                 }
             });
         });

@@ -315,7 +315,7 @@
 
         try {
             if (editingUserId) {
-                var updatePayload = { nombre: nombre, correo: email, rol: rol, estado: estado };
+                var updatePayload = { nombre: nombre, correo: email, rol: rol, activo: estado === 'activo' };
                 if (password) updatePayload.password = password;
 
                 if (typeof InvDB !== 'undefined' && InvDB.updateUsuario) {

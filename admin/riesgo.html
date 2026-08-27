@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="../css/admin.css">
     <script>
         (function(){
-            var t=localStorage.getItem('theme');
-            if(t==='dark'){document.documentElement.classList.add('dark-theme');}
+            var t=localStorage.getItem('portal-theme');
+            if(t==='dark'){document.documentElement.dataset.theme='dark';}
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

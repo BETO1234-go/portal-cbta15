@@ -13,8 +13,8 @@
     </style>
     <script>
         (function () {
-            const saved = localStorage.getItem('theme');
-            if (saved === 'dark') document.documentElement.classList.add('dark');
+            var saved = localStorage.getItem('portal-theme');
+            if (saved === 'dark') document.documentElement.dataset.theme = 'dark';
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -278,10 +278,16 @@
         }
         document.getElementById('btnConfirmarEliminarGrupo').addEventListener('click', async function() {
             if (grupoIdAEliminar) {
-                await DB.deleteGrupo(grupoIdAEliminar);
-                closeModal('modalEliminarGrupo');
-                grupoIdAEliminar = null;
-                populateGrupos();
+                try {
+                    await DB.deleteGrupo(grupoIdAEliminar);
+                    closeModal('modalEliminarGrupo');
+                    grupoIdAEliminar = null;
+                    populateGrupos();
+                    showToast('Grupo eliminado correctamente', 'success');
+                } catch (err) {
+                    console.error('Error al eliminar grupo:', err);
+                    showToast('Error al eliminar el grupo', 'error');
+                }
             }
         });
         document.getElementById('btnGuardarGrupo').addEventListener('click', async function() {
@@ -293,10 +299,16 @@
             var nombre = document.getElementById('nombre').value.trim();
             var grado_id = document.getElementById('grado_id').value;
             if (!nombre || !grado_id) return;
-            await DB.createGrupo({ nombre: nombre, grado_id: parseInt(grado_id) });
-            closeModal('modalGrupo');
-            form.reset();
-            populateGrupos();
+            try {
+                await DB.createGrupo({ nombre: nombre, grado_id: parseInt(grado_id) });
+                closeModal('modalGrupo');
+                form.reset();
+                populateGrupos();
+                showToast('Grupo creado correctamente', 'success');
+            } catch (err) {
+                console.error('Error al crear grupo:', err);
+                showToast('Error al crear el grupo', 'error');
+            }
         });
     });
 </script>

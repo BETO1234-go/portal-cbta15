@@ -9,9 +9,8 @@
     <link rel="stylesheet" href="../css/admin.css">
     <script>
         (function(){
-            var t=localStorage.getItem('theme');
-            if(t==='dark'){document.documentElement.classList.add('dark');}
-            else if(!t){document.documentElement.classList.add('dark');}
+            var t=localStorage.getItem('portal-theme');
+            if(t==='dark'){document.documentElement.dataset.theme='dark';}
         })();
     </script>
     <style>

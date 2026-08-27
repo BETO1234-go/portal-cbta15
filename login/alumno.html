@@ -6,10 +6,8 @@
     <title>Acceso Alumno | CBTA 15</title>
     <script>
         (function () {
-            var savedTheme = localStorage.getItem('inventario-theme');
-            if (savedTheme === 'dark' || savedTheme === 'light') {
-                document.documentElement.dataset.theme = savedTheme;
-            }
+            var t = localStorage.getItem('portal-theme');
+            if (t === 'dark') document.documentElement.dataset.theme = 'dark';
         })();
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -47,7 +45,7 @@
             var root = document.documentElement;
             var next = root.dataset.theme === 'dark' ? 'light' : 'dark';
             root.dataset.theme = next;
-            localStorage.setItem('inventario-theme', next);
+            localStorage.setItem('portal-theme', next);
         }
 
     </script>

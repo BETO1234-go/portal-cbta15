@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="../css/admin.css">
     <script>
         (function(){
-            var t=localStorage.getItem('theme');
-            if(t==='dark'){document.documentElement.classList.add('dark-theme');}
+            var t=localStorage.getItem('portal-theme');
+            if(t==='dark'){document.documentElement.dataset.theme='dark';}
         })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -329,10 +329,16 @@
                     porcentaje: porcentaje,
                     cumple: porcentaje >= 80
                 };
-                await DB.createAsistencia(obj);
-                closeModal('modalAsistencia');
-                this.reset();
-                populateAsistencias();
+                try {
+                    await DB.createAsistencia(obj);
+                    closeModal('modalAsistencia');
+                    this.reset();
+                    populateAsistencias();
+                    showToast('Asistencia creada correctamente', 'success');
+                } catch (err) {
+                    console.error('Error al crear asistencia:', err);
+                    showToast('Error al crear la asistencia', 'error');
+                }
             });
         });
     </script>
