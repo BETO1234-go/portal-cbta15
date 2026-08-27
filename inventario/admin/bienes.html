@@ -527,15 +527,15 @@
 
         function printQR() {
             var no = document.getElementById('modalQR').dataset.bienNo;
+            var imgSrc = document.getElementById('qrImage').src;
             var win = window.open('', '_blank');
             win.document.write('<html><head><title>QR - ' + no + '</title>');
             win.document.write('<style>body{font-family:Poppins,sans-serif;text-align:center;padding:40px;}img{max-width:200px;}h2{margin-top:20px;font-size:18px;}</style>');
             win.document.write('</head><body>');
-            win.document.write('<img src="' + document.getElementById('qrImage').src + '">');
+            win.document.write('<img id="qr" src="' + imgSrc + '" onload="setTimeout(function(){window.print();},300)">');
             win.document.write('<h2>' + no + '</h2>');
             win.document.write('</body></html>');
             win.document.close();
-            win.print();
         }
 
         function copyQRUrl() {
